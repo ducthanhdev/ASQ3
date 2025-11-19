@@ -1,4 +1,4 @@
-export default function LoginPage() {
+export default function Login() {
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="w-full max-w-md space-y-8 p-8">
@@ -16,6 +16,6 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }
 

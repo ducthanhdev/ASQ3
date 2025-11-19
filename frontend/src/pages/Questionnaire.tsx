@@ -1,4 +1,4 @@
-export default function QuestionnairePage() {
+export default function Questionnaire() {
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-3xl font-bold mb-6">Questionnaire</h1>
@@ -6,6 +6,6 @@ export default function QuestionnairePage() {
         Questionnaire page coming soon...
       </p>
     </div>
-  );
+  )
 }
 
