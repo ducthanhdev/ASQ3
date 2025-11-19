@@ -50,6 +50,7 @@ model Questionnaire {
   minMonth Int
   maxMonth Int
   language String
+  createdAt     DateTime @default(now())
 
   versions     QuestionnaireVersion[]
   ocrTemplates OcrTemplate[]
@@ -59,10 +60,11 @@ model Questionnaire {
  * 4. QUESTIONNAIRE VERSIONS
  */
 model QuestionnaireVersion {
-  id              Int    @id @default(autoincrement())
+  id              Int      @id @default(autoincrement())
   questionnaireId Int
   version         String
   structureJson   Json
+  createdAt       DateTime @default(now())
 
   questionnaire Questionnaire @relation(fields: [questionnaireId], references: [id])
   assessments   Assessment[]

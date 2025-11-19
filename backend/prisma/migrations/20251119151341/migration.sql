@@ -32,6 +32,7 @@ CREATE TABLE `Questionnaire` (
     `minMonth` INTEGER NOT NULL,
     `maxMonth` INTEGER NOT NULL,
     `language` VARCHAR(191) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     UNIQUE INDEX `Questionnaire_code_key`(`code`),
     PRIMARY KEY (`id`)
@@ -43,6 +44,7 @@ CREATE TABLE `QuestionnaireVersion` (
     `questionnaireId` INTEGER NOT NULL,
     `version` VARCHAR(191) NOT NULL,
     `structureJson` JSON NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
