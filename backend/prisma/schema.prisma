@@ -1,0 +1,164 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+/**
+ * 1. USERS
+ */
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  email        String?  @unique
+  passwordHash String
+  role         String   @default("PARENT")
+  createdAt    DateTime @default(now())
+
+  children    Child[]
+  assessments Assessment[] @relation("evaluator")
+  followUps   FollowUp[]   @relation("assigned_to_user")
+
+  uploads File[] @relation("uploader")
+}
+
+/**
+ * 2. CHILDREN
+ */
+model Child {
+  id             Int      @id @default(autoincrement())
+  parentId       Int?
+  fullName       String
+  birthDate      DateTime
+  prematureWeeks Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  parent      User?        @relation(fields: [parentId], references: [id])
+  assessments Assessment[]
+}
+
+/**
+ * 3. QUESTIONNAIRES
+ */
+model Questionnaire {
+  id       Int    @id @default(autoincrement())
+  code     String @unique
+  title    String
+  minMonth Int
+  maxMonth Int
+  language String
+
+  versions     QuestionnaireVersion[]
+  ocrTemplates OcrTemplate[]
+}
+
+/**
+ * 4. QUESTIONNAIRE VERSIONS
+ */
+model QuestionnaireVersion {
+  id              Int    @id @default(autoincrement())
+  questionnaireId Int
+  version         String
+  structureJson   Json
+
+  questionnaire Questionnaire @relation(fields: [questionnaireId], references: [id])
+  assessments   Assessment[]
+  ocrResults    OcrResult[]
+}
+
+/**
+ * 5. ASSESSMENTS
+ */
+model Assessment {
+  id                     Int      @id @default(autoincrement())
+  childId                Int
+  questionnaireVersionId Int
+  evaluatorId            Int?
+  assessmentDate         DateTime
+  answersJson            Json?
+  scoresJson             Json?
+  summaryResultJson      Json?
+  finalConclusion        String   @default("PENDING_REVIEW")
+  method                 String   @default("ONLINE")
+  scanFileId             Int?     @unique
+  createdAt              DateTime @default(now())
+
+  child                Child                @relation(fields: [childId], references: [id])
+  questionnaireVersion QuestionnaireVersion @relation(fields: [questionnaireVersionId], references: [id])
+  evaluator            User?                @relation("evaluator", fields: [evaluatorId], references: [id])
+
+  // ---- FIXED: Relation 1–1 with File ----
+  scanFile File? @relation("AssessmentScanFile", fields: [scanFileId], references: [id])
+
+  followUps FollowUp[]
+}
+
+/**
+ * 6. FILES
+ */
+model File {
+  id           Int      @id @default(autoincrement())
+  uploaderId   Int?
+  originalName String
+  storagePath  String
+  mimeType     String?
+  sizeBytes    Int?
+  createdAt    DateTime @default(now())
+
+  uploader User? @relation("uploader", fields: [uploaderId], references: [id])
+
+  ocrResults OcrResult[]
+
+  // ---- FIXED: back relation to Assessment ----
+  assessment Assessment? @relation("AssessmentScanFile")
+}
+
+/**
+ * 7. OCR_RESULTS
+ */
+model OcrResult {
+  id                     Int      @id @default(autoincrement())
+  fileId                 Int
+  questionnaireVersionId Int?
+  rawText                String?
+  parsedAnswersJson      Json?
+  confidence             Float?
+  bboxJson               Json?
+  createdAt              DateTime @default(now())
+
+  file                 File                  @relation(fields: [fileId], references: [id])
+  questionnaireVersion QuestionnaireVersion? @relation(fields: [questionnaireVersionId], references: [id])
+}
+
+/**
+ * 8. OCR_TEMPLATES
+ */
+model OcrTemplate {
+  id              Int      @id @default(autoincrement())
+  questionnaireId Int
+  pageWidth       Int
+  pageHeight      Int
+  boxesJson       Json
+  createdAt       DateTime @default(now())
+
+  questionnaire Questionnaire @relation(fields: [questionnaireId], references: [id])
+}
+
+/**
+ * 9. FOLLOW_UPS
+ */
+model FollowUp {
+  id           Int       @id @default(autoincrement())
+  assessmentId Int
+  actionType   String
+  notes        String?
+  dueDate      DateTime?
+  assignedTo   Int?
+  status       String    @default("OPEN")
+
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
+  assignedUser User?      @relation("assigned_to_user", fields: [assignedTo], references: [id])
+}
