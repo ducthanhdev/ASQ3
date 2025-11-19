@@ -4,8 +4,8 @@ import { AppController } from './app.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { ChildrenModule } from './children/children.module';
-import { AssessmentModule } from './assessment/assessment.module';
 import { QuestionnaireModule } from './questionnaire/questionnaire.module';
+import { AssessmentsModule } from './assessments/assessments.module';
 
 @Module({
   imports: [
@@ -15,8 +15,8 @@ import { QuestionnaireModule } from './questionnaire/questionnaire.module';
     PrismaModule,
     AuthModule,
     ChildrenModule,
-    AssessmentModule,
     QuestionnaireModule,
+    AssessmentsModule,
   ],
   controllers: [AppController],
 })
