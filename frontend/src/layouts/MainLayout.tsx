@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function MainLayout({ children }: { children: ReactNode }) {
-  const { user, logout } = useAuth();
+  const { user, logout, hasRole } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -24,12 +24,34 @@ export default function MainLayout({ children }: { children: ReactNode }) {
                 <Link to="/" className="text-gray-700 hover:text-gray-900">
                   Dashboard
                 </Link>
+                
+                {hasRole("PARENT") && (
+                  <Link to="/my-children" className="text-gray-700 hover:text-gray-900">
+                    My Children
+                  </Link>
+                )}
+                
+                {hasRole(["SPECIALIST", "ADMIN"]) && (
+                  <Link to="/children" className="text-gray-700 hover:text-gray-900">
+                    All Children
+                  </Link>
+                )}
+                
                 <Link to="/questionnaires" className="text-gray-700 hover:text-gray-900">
                   Questionnaires
                 </Link>
+                
+                {hasRole("ADMIN") && (
+                  <Link to="/users" className="text-gray-700 hover:text-gray-900">
+                    Users
+                  </Link>
+                )}
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600">
+                {user?.role}
+              </span>
               <span className="text-sm text-gray-600">
                 {user?.username}
               </span>

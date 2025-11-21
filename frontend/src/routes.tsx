@@ -4,6 +4,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import MyChildren from './pages/MyChildren';
+import AllChildren from './pages/AllChildren';
+import UserManagement from './pages/UserManagement';
 import QuestionnaireList from './pages/QuestionnaireList';
 import QuestionnaireDetail from './pages/QuestionnaireDetail';
 import AssessmentForm from './pages/AssessmentForm';
@@ -19,6 +22,24 @@ export default function AppRoutes() {
         <Route path="/" element={
           <ProtectedRoute>
             <MainLayout><Dashboard /></MainLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/my-children" element={
+          <ProtectedRoute>
+            <MainLayout><MyChildren /></MainLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/children" element={
+          <ProtectedRoute>
+            <MainLayout><AllChildren /></MainLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/users" element={
+          <ProtectedRoute>
+            <MainLayout><UserManagement /></MainLayout>
           </ProtectedRoute>
         } />
         

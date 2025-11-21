@@ -1,11 +1,13 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { api } from "../api/client";
 
+export type Role = "PARENT" | "SPECIALIST" | "ADMIN";
+
 interface User {
   id: number;
   username: string;
   email: string | null;
-  role: string;
+  role: Role;
 }
 
 interface AuthContextType {
@@ -14,6 +16,7 @@ interface AuthContextType {
   register: (username: string, password: string, email?: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  hasRole: (roles: Role | Role[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -52,13 +55,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       await api.post("/auth/logout");
     } catch {
-      // Ignore errors
+      // Ignore
     }
     
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("user");
     setUser(null);
+  };
+
+  const hasRole = (roles: Role | Role[]) => {
+    if (!user) return false;
+    const roleArray = Array.isArray(roles) ? roles : [roles];
+    return roleArray.includes(user.role);
   };
 
   return (
@@ -68,6 +77,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       register,
       logout,
       isAuthenticated: !!user,
+      hasRole,
     }}>
       {children}
     </AuthContext.Provider>
