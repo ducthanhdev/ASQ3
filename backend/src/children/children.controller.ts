@@ -27,6 +27,11 @@ export class ChildrenController {
     return this.childrenService.findOne(id, req.user);
   }
 
+  @Get(':id/assessments')
+  getAssessments(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    return this.childrenService.getAssessments(id, req.user);
+  }
+
   @Post()
   create(@Body() dto: CreateChildDto, @Request() req) {
     return this.childrenService.create(dto, req.user);
@@ -43,4 +48,3 @@ export class ChildrenController {
     return this.childrenService.remove(id);
   }
 }
-

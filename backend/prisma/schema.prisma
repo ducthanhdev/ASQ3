@@ -13,6 +13,12 @@ enum Role {
   ADMIN
 }
 
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
 model User {
   id            Int       @id @default(autoincrement())
   username      String    @unique
@@ -34,15 +40,18 @@ model User {
  * 2. CHILDREN
  */
 model Child {
-  id             Int      @id @default(autoincrement())
-  parentId       Int?
-  fullName       String
-  birthDate      DateTime
-  prematureWeeks Int      @default(0)
-  createdAt      DateTime @default(now())
-
-  parent      User?        @relation(fields: [parentId], references: [id])
-  assessments Assessment[]
+  id              Int          @id @default(autoincrement())
+  parentId        Int?
+  fullName        String
+  gender          Gender       @default(MALE)
+  birthDate       DateTime
+  prematureWeeks  Int          @default(0)
+  guardianName    String?      @map("guardian_name")
+  guardianPhone   String?      @map("guardian_phone")
+  note            String?      @db.Text
+  createdAt       DateTime     @default(now())
+  parent          User?        @relation(fields: [parentId], references: [id])
+  assessments     Assessment[]
 }
 
 /**

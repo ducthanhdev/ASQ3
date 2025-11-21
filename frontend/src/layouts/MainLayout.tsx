@@ -55,12 +55,12 @@ export default function MainLayout({ children }: { children: ReactNode }) {
               <span className="text-sm text-gray-600">
                 {user?.username}
               </span>
-              <button
-                onClick={handleLogout}
+            <button
+              onClick={handleLogout}
                 className="text-gray-700 hover:text-gray-900 font-medium"
-              >
-                Logout
-              </button>
+            >
+              Logout
+            </button>
             </div>
           </div>
         </div>

@@ -1,9 +1,12 @@
-import { IsString, IsNotEmpty, IsDateString, IsInt, IsOptional, Min } from 'class-validator';
+import { IsString, IsNotEmpty, IsDateString, IsInt, IsOptional, IsEnum, Min } from 'class-validator';
 
 export class CreateChildDto {
   @IsString()
   @IsNotEmpty()
   fullName: string;
+
+  @IsEnum(['MALE', 'FEMALE', 'OTHER'])
+  gender: string;
 
   @IsDateString()
   birthDate: string;
@@ -12,5 +15,16 @@ export class CreateChildDto {
   @IsOptional()
   @Min(0)
   prematureWeeks?: number;
-}
 
+  @IsString()
+  @IsOptional()
+  guardianName?: string;
+
+  @IsString()
+  @IsOptional()
+  guardianPhone?: string;
+
+  @IsString()
+  @IsOptional()
+  note?: string;
+}
