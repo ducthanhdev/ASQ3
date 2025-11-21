@@ -7,6 +7,8 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import MyChildren from './pages/MyChildren';
 import AllChildren from './pages/AllChildren';
+import ChildForm from './pages/ChildForm';
+import ChildDetail from './pages/ChildDetail';
 import UserManagement from './pages/UserManagement';
 import QuestionnaireList from './pages/QuestionnaireList';
 import QuestionnaireDetail from './pages/QuestionnaireDetail';
@@ -16,6 +18,7 @@ import AdminDashboard from './pages/admin/Dashboard';
 import AdminUsers from './pages/admin/Users';
 import AdminChildren from './pages/admin/Children';
 import AdminQuestionnaires from './pages/admin/Questionnaires';
+import AdminAssessments from './pages/admin/Assessments';
 
 export default function AppRoutes() {
   return (
@@ -39,6 +42,24 @@ export default function AppRoutes() {
         <Route path="/children" element={
           <ProtectedRoute>
             <MainLayout><AllChildren /></MainLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/children/new" element={
+          <ProtectedRoute>
+            <MainLayout><ChildForm /></MainLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/children/:id" element={
+          <ProtectedRoute>
+            <MainLayout><ChildDetail /></MainLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/children/:id/edit" element={
+          <ProtectedRoute>
+            <MainLayout><ChildForm /></MainLayout>
           </ProtectedRoute>
         } />
         
@@ -93,6 +114,12 @@ export default function AppRoutes() {
         <Route path="/admin/questionnaires" element={
           <ProtectedRoute>
             <AdminLayout><AdminQuestionnaires /></AdminLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/assessments" element={
+          <ProtectedRoute>
+            <AdminLayout><AdminAssessments /></AdminLayout>
           </ProtectedRoute>
         } />
         
