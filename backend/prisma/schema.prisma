@@ -7,19 +7,22 @@ generator client {
   provider = "prisma-client-js"
 }
 
-/**
- * 1. USERS
- */
+enum Role {
+  PARENT
+  SPECIALIST
+  ADMIN
+}
+
 model User {
-  id            Int      @id @default(autoincrement())
-  username      String   @unique
-  email         String?  @unique
+  id            Int       @id @default(autoincrement())
+  username      String    @unique
+  email         String?   @unique
   passwordHash  String
-  role          String   @default("PARENT")
-  tokenVersion  Int      @default(0)
-  refreshToken  String?  @db.Text
+  role          Role      @default(PARENT)
+  tokenVersion  Int       @default(0)
+  refreshToken  String?   @db.Text
   lastLoginAt   DateTime?
-  createdAt     DateTime @default(now())
+  createdAt     DateTime  @default(now())
 
   children    Child[]
   assessments Assessment[] @relation("evaluator")
