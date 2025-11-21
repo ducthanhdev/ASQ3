@@ -1,7 +1,8 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import AuthLayout from './layouts/AuthLayout';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
+import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import QuestionnaireList from './pages/QuestionnaireList';
 import QuestionnaireDetail from './pages/QuestionnaireDetail';
@@ -12,12 +13,40 @@ export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<AuthLayout><Login /></AuthLayout>} />
-        <Route path="/" element={<MainLayout><Dashboard /></MainLayout>} />
-        <Route path="/questionnaires" element={<MainLayout><QuestionnaireList /></MainLayout>} />
-        <Route path="/questionnaires/:id" element={<MainLayout><QuestionnaireDetail /></MainLayout>} />
-        <Route path="/questionnaires/:id/assessment" element={<MainLayout><AssessmentForm /></MainLayout>} />
-        <Route path="/assessment/:id" element={<MainLayout><AssessmentResult /></MainLayout>} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        
+        <Route path="/" element={
+          <ProtectedRoute>
+            <MainLayout><Dashboard /></MainLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/questionnaires" element={
+          <ProtectedRoute>
+            <MainLayout><QuestionnaireList /></MainLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/questionnaires/:id" element={
+          <ProtectedRoute>
+            <MainLayout><QuestionnaireDetail /></MainLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/questionnaires/:id/assessment" element={
+          <ProtectedRoute>
+            <MainLayout><AssessmentForm /></MainLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/assessment/:id" element={
+          <ProtectedRoute>
+            <MainLayout><AssessmentResult /></MainLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );

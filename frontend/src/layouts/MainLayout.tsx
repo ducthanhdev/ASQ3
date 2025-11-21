@@ -1,15 +1,13 @@
 import { ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
-interface MainLayoutProps {
-  children: ReactNode;
-}
-
-export default function MainLayout({ children }: MainLayoutProps) {
+export default function MainLayout({ children }: { children: ReactNode }) {
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    logout();
     navigate('/login');
   };
 
@@ -31,12 +29,17 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 </Link>
               </div>
             </div>
-            <button
-              onClick={handleLogout}
-              className="text-gray-700 hover:text-gray-900"
-            >
-              Logout
-            </button>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-600">
+                {user?.username}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="text-gray-700 hover:text-gray-900 font-medium"
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </nav>
