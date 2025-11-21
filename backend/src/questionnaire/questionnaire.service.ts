@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -10,7 +10,7 @@ export class QuestionnaireService {
       include: {
         versions: {
           orderBy: {
-            createdAt: 'desc',
+            id: 'desc',
           },
           take: 1,
         },
@@ -18,11 +18,46 @@ export class QuestionnaireService {
     });
   }
 
-  async getLatestVersion(id: number) {
-    return this.prisma.questionnaireVersion.findFirst({
-      where: { questionnaireId: id },
-      orderBy: { createdAt: 'desc' },
+  async findOne(id: number) {
+    const questionnaire = await this.prisma.questionnaire.findUnique({
+      where: { id },
+      include: {
+        versions: {
+          orderBy: {
+            id: 'desc',
+          },
+        },
+      },
     });
+
+    if (!questionnaire) {
+      throw new NotFoundException(`Questionnaire with ID ${id} not found`);
+    }
+
+    return questionnaire;
+  }
+
+  async getLatestVersion(id: number) {
+    const questionnaire = await this.prisma.questionnaire.findUnique({
+      where: { id },
+    });
+
+    if (!questionnaire) {
+      throw new NotFoundException(`Questionnaire with ID ${id} not found`);
+    }
+
+    const version = await this.prisma.questionnaireVersion.findFirst({
+      where: { questionnaireId: id },
+      orderBy: { id: 'desc' },
+    });
+
+    if (!version) {
+      throw new NotFoundException(
+        `No version found for questionnaire with ID ${id}`,
+      );
+    }
+
+    return version;
   }
 }
 

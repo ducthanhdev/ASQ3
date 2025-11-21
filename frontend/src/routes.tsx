@@ -5,6 +5,8 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import QuestionnaireList from './pages/QuestionnaireList';
 import QuestionnaireDetail from './pages/QuestionnaireDetail';
+import AssessmentForm from './pages/AssessmentForm';
+import AssessmentResult from './pages/AssessmentResult';
 
 export default function AppRoutes() {
   return (
@@ -14,6 +16,8 @@ export default function AppRoutes() {
         <Route path="/" element={<MainLayout><Dashboard /></MainLayout>} />
         <Route path="/questionnaires" element={<MainLayout><QuestionnaireList /></MainLayout>} />
         <Route path="/questionnaires/:id" element={<MainLayout><QuestionnaireDetail /></MainLayout>} />
+        <Route path="/questionnaires/:id/assessment" element={<MainLayout><AssessmentForm /></MainLayout>} />
+        <Route path="/assessment/:id" element={<MainLayout><AssessmentResult /></MainLayout>} />
       </Routes>
     </BrowserRouter>
   );

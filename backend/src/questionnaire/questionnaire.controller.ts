@@ -10,6 +10,11 @@ export class QuestionnaireController {
     return this.questionnaireService.findAll();
   }
 
+  @Get(':id')
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.questionnaireService.findOne(id);
+  }
+
   @Get(':id/version/latest')
   async getLatestVersion(@Param('id', ParseIntPipe) id: number) {
     return this.questionnaireService.getLatestVersion(id);

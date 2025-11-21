@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAssessmentDto } from './dto/create-assessment.dto';
 
@@ -9,12 +9,20 @@ export class AssessmentsService {
   async create(dto: CreateAssessmentDto) {
     const { childId, questionnaireVersionId, answers } = dto;
 
+    const child = await this.prisma.child.findUnique({
+      where: { id: childId },
+    });
+
+    if (!child) {
+      throw new NotFoundException(`Child with ID ${childId} not found`);
+    }
+
     const version = await this.prisma.questionnaireVersion.findUnique({
       where: { id: questionnaireVersionId },
     });
 
     if (!version) {
-      throw new Error('Questionnaire version not found');
+      throw new NotFoundException('Questionnaire version not found');
     }
 
     const structure = version.structureJson as any;
@@ -38,7 +46,7 @@ export class AssessmentsService {
       domainTotals,
       finalConclusion: 'PENDING_REVIEW',
     };
-        
+
     const assessment = await this.prisma.assessment.create({
       data: {
         childId,
