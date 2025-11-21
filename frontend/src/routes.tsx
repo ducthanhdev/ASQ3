@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
+import AdminLayout from './layouts/AdminLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -11,6 +12,10 @@ import QuestionnaireList from './pages/QuestionnaireList';
 import QuestionnaireDetail from './pages/QuestionnaireDetail';
 import AssessmentForm from './pages/AssessmentForm';
 import AssessmentResult from './pages/AssessmentResult';
+import AdminDashboard from './pages/admin/Dashboard';
+import AdminUsers from './pages/admin/Users';
+import AdminChildren from './pages/admin/Children';
+import AdminQuestionnaires from './pages/admin/Questionnaires';
 
 export default function AppRoutes() {
   return (
@@ -64,6 +69,30 @@ export default function AppRoutes() {
         <Route path="/assessment/:id" element={
           <ProtectedRoute>
             <MainLayout><AssessmentResult /></MainLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin" element={
+          <ProtectedRoute>
+            <AdminLayout><AdminDashboard /></AdminLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/users" element={
+          <ProtectedRoute>
+            <AdminLayout><AdminUsers /></AdminLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/children" element={
+          <ProtectedRoute>
+            <AdminLayout><AdminChildren /></AdminLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/questionnaires" element={
+          <ProtectedRoute>
+            <AdminLayout><AdminQuestionnaires /></AdminLayout>
           </ProtectedRoute>
         } />
         

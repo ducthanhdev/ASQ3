@@ -42,8 +42,8 @@ export default function MainLayout({ children }: { children: ReactNode }) {
                 </Link>
                 
                 {hasRole("ADMIN") && (
-                  <Link to="/users" className="text-gray-700 hover:text-gray-900">
-                    Users
+                  <Link to="/admin" className="text-gray-700 hover:text-gray-900">
+                    Admin
                   </Link>
                 )}
               </div>
