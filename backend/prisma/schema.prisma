@@ -11,18 +11,20 @@ generator client {
  * 1. USERS
  */
 model User {
-  id           Int      @id @default(autoincrement())
-  username     String   @unique
-  email        String?  @unique
-  passwordHash String
-  role         String   @default("PARENT")
-  createdAt    DateTime @default(now())
+  id            Int      @id @default(autoincrement())
+  username      String   @unique
+  email         String?  @unique
+  passwordHash  String
+  role          String   @default("PARENT")
+  tokenVersion  Int      @default(0)
+  refreshToken  String?  @db.Text
+  lastLoginAt   DateTime?
+  createdAt     DateTime @default(now())
 
   children    Child[]
   assessments Assessment[] @relation("evaluator")
   followUps   FollowUp[]   @relation("assigned_to_user")
-
-  uploads File[] @relation("uploader")
+  uploads     File[]       @relation("uploader")
 }
 
 /**

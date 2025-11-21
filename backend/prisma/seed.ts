@@ -1,12 +1,11 @@
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
+
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('🌱 START SEEDING…');
 
-  // ===============================
-  // 0) CLEAN UP - Xóa dữ liệu cũ (nếu có)
-  // ===============================
   console.log('🧹 Cleaning up old data...');
   await prisma.assessment.deleteMany({});
   await prisma.questionnaireVersion.deleteMany({});
@@ -15,9 +14,7 @@ async function main() {
   await prisma.user.deleteMany({});
   console.log('✓ Old data cleaned');
 
-  // ===============================
-  // 1) QUESTIONNAIRE
-  // ===============================
+
   const questionnaire = await prisma.questionnaire.create({
     data: {
       code: 'ASQ3_2M',
@@ -29,10 +26,6 @@ async function main() {
   });
 
   console.log('✓ Questionnaire created');
-
-  // ===============================
-  // 2) QUESTIONNAIRE VERSION với structureJson có domains và questions
-  // ===============================
 
   const structureJson = {
     metadata: {
@@ -237,23 +230,28 @@ async function main() {
 
   console.log('✓ QuestionnaireVersion created with 30 questions');
 
-  // ===============================
-  // 3) FAKE USER (PARENT)
-  // ===============================
+  const parentPassword = await bcrypt.hash('123456', 10);
   const parent = await prisma.user.create({
     data: {
-      username: 'parent_demo',
+      username: 'parent',
       email: 'parent@example.com',
-      passwordHash: 'hashed_password_here', // TODO: Hash password properly
+      passwordHash: parentPassword,
       role: 'PARENT',
     },
   });
 
-  console.log('✓ User (parent) created');
+  const adminPassword = await bcrypt.hash('admin123', 10);
+  const admin = await prisma.user.create({
+    data: {
+      username: 'admin',
+      email: 'admin@example.com',
+      passwordHash: adminPassword,
+      role: 'ADMIN',
+    },
+  });
 
-  // ===============================
-  // 4) FAKE CHILD
-  // ===============================
+  console.log('✓ Users created (parent:123456, admin:admin123)');
+
   const child = await prisma.child.create({
     data: {
       parentId: parent.id,
@@ -265,9 +263,6 @@ async function main() {
 
   console.log('✓ Child created');
 
-  // ===============================
-  // 5) FAKE ASSESSMENT (Optional - for testing results page)
-  // ===============================
   const assessment = await prisma.assessment.create({
     data: {
       childId: child.id,
