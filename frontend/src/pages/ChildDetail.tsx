@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../api/client";
+import { Edit, Calendar, User, Phone, Mail, FileText, Plus, Loader2, AlertCircle } from "lucide-react";
 
 interface Child {
   id: number;
@@ -18,6 +19,7 @@ interface Child {
     id: number;
     createdAt: string;
     summaryResultJson: any;
+    finalConclusion?: string;
   }[];
 }
 
@@ -32,108 +34,166 @@ export default function ChildDetail() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <div>Loading...</div>;
-  if (!child) return <div>Child not found</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          <p className="text-gray-600">Loading child information...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!child) {
+    return (
+      <div className="text-center py-12">
+        <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+        <p className="text-gray-600">Child not found</p>
+      </div>
+    );
+  }
+
+  const getConclusionColor = (conclusion?: string) => {
+    if (conclusion === "REFER") return "bg-red-100 text-red-700";
+    if (conclusion === "MONITOR") return "bg-yellow-100 text-yellow-700";
+    return "bg-green-100 text-green-700";
+  };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">{child.fullName}</h1>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">{child.fullName}</h1>
+          <p className="text-gray-600 mt-1">Child profile and assessment history</p>
+        </div>
         <Link
           to={`/children/${id}/edit`}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
         >
+          <Edit className="w-4 h-4" />
           Edit
         </Link>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="bg-white rounded-lg border p-6">
-          <h2 className="text-lg font-semibold mb-4">Basic Information</h2>
-          <div className="space-y-3">
-            <div>
-              <p className="text-sm text-gray-600">Gender</p>
-              <p className="font-medium">{child.gender}</p>
+        <div className="bg-white rounded-xl border p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <User className="w-5 h-5 text-gray-400" />
+              <div>
+                <p className="text-xs text-gray-500">Gender</p>
+                <p className="font-medium text-gray-900">{child.gender}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-gray-600">Birth Date</p>
-              <p className="font-medium">{new Date(child.birthDate).toLocaleDateString()}</p>
+            <div className="flex items-center gap-3">
+              <Calendar className="w-5 h-5 text-gray-400" />
+              <div>
+                <p className="text-xs text-gray-500">Birth Date</p>
+                <p className="font-medium text-gray-900">{new Date(child.birthDate).toLocaleDateString("vi-VN")}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-gray-600">Age</p>
-              <p className="font-medium">{child.ageMonths} months</p>
+            <div className="flex items-center gap-3">
+              <Calendar className="w-5 h-5 text-gray-400" />
+              <div>
+                <p className="text-xs text-gray-500">Age</p>
+                <p className="font-medium text-gray-900">{child.ageMonths} months</p>
+              </div>
             </div>
             {child.prematureWeeks > 0 && (
-              <div>
-                <p className="text-sm text-gray-600">Adjusted Age</p>
-                <p className="font-medium text-orange-600">
-                  {child.adjustedAgeMonths} months
-                  <span className="text-sm text-gray-500 ml-2">
-                    (premature {child.prematureWeeks} weeks)
-                  </span>
-                </p>
+              <div className="flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 text-orange-500" />
+                <div>
+                  <p className="text-xs text-gray-500">Adjusted Age</p>
+                  <p className="font-medium text-orange-600">
+                    {child.adjustedAgeMonths} months
+                    <span className="text-sm text-gray-500 ml-2">(premature {child.prematureWeeks} weeks)</span>
+                  </p>
+                </div>
               </div>
             )}
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border p-6">
-          <h2 className="text-lg font-semibold mb-4">Guardian Information</h2>
-          <div className="space-y-3">
-            <div>
-              <p className="text-sm text-gray-600">Guardian Name</p>
-              <p className="font-medium">{child.guardianName || "-"}</p>
+        <div className="bg-white rounded-xl border p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Guardian Information</h2>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <User className="w-5 h-5 text-gray-400" />
+              <div>
+                <p className="text-xs text-gray-500">Guardian Name</p>
+                <p className="font-medium text-gray-900">{child.guardianName || "-"}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-gray-600">Guardian Phone</p>
-              <p className="font-medium">{child.guardianPhone || "-"}</p>
+            <div className="flex items-center gap-3">
+              <Phone className="w-5 h-5 text-gray-400" />
+              <div>
+                <p className="text-xs text-gray-500">Guardian Phone</p>
+                <p className="font-medium text-gray-900">{child.guardianPhone || "-"}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-gray-600">Parent Account</p>
-              <p className="font-medium">{child.parent.username}</p>
+            <div className="flex items-center gap-3">
+              <Mail className="w-5 h-5 text-gray-400" />
+              <div>
+                <p className="text-xs text-gray-500">Parent Account</p>
+                <p className="font-medium text-gray-900">{child.parent.username}</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {child.note && (
-        <div className="bg-white rounded-lg border p-6">
-          <h2 className="text-lg font-semibold mb-2">Notes</h2>
+        <div className="bg-white rounded-xl border p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">Notes</h2>
           <p className="text-gray-700 whitespace-pre-wrap">{child.note}</p>
         </div>
       )}
 
-      <div className="bg-white rounded-lg border p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Assessment History</h2>
+      <div className="bg-white rounded-xl border p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Assessment History</h2>
+            <p className="text-sm text-gray-600 mt-1">View and manage assessment records</p>
+          </div>
           <Link
             to={`/children/${id}/new-assessment`}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
           >
+            <Plus className="w-4 h-4" />
             New Assessment
           </Link>
         </div>
 
         {child.assessments.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">No assessments yet</p>
+          <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-lg">
+            <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+            <p className="text-gray-600">No assessments yet</p>
+          </div>
         ) : (
           <div className="space-y-3">
             {child.assessments.map((assessment) => (
               <Link
                 key={assessment.id}
                 to={`/assessment/${assessment.id}`}
-                className="block p-4 border rounded-lg hover:bg-gray-50 transition"
+                className="block p-4 border rounded-lg hover:bg-gray-50 hover:border-blue-300 transition-colors"
               >
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Assessment #{assessment.id}</p>
-                    <p className="text-sm text-gray-600">
-                      {new Date(assessment.createdAt).toLocaleDateString()}
-                    </p>
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">Assessment #{assessment.id}</p>
+                      <p className="text-sm text-gray-600">
+                        {new Date(assessment.createdAt).toLocaleDateString("vi-VN")}
+                      </p>
+                    </div>
                   </div>
-                  {assessment.summaryResultJson && (
-                    <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full">
-                      Completed
+                  {assessment.finalConclusion && (
+                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${getConclusionColor(assessment.finalConclusion)}`}>
+                      {assessment.finalConclusion}
                     </span>
                   )}
                 </div>
