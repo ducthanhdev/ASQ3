@@ -19,6 +19,11 @@ import AdminUsers from './pages/admin/Users';
 import AdminChildren from './pages/admin/Children';
 import AdminQuestionnaires from './pages/admin/Questionnaires';
 import AdminAssessments from './pages/admin/Assessments';
+import QuestionnaireForm from './pages/admin/QuestionnaireForm';
+import QuestionnaireImport from './pages/admin/QuestionnaireImport';
+import AdminQuestionnaireDetail from './pages/admin/QuestionnaireDetail';
+import QuestionnaireVersions from './pages/admin/QuestionnaireVersions';
+import QuestionnaireEdit from './pages/admin/QuestionnaireEdit';
 
 export default function AppRoutes() {
   return (
@@ -114,6 +119,36 @@ export default function AppRoutes() {
         <Route path="/admin/questionnaires" element={
           <ProtectedRoute>
             <AdminLayout><AdminQuestionnaires /></AdminLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/questionnaires/create" element={
+          <ProtectedRoute>
+            <AdminLayout><QuestionnaireForm /></AdminLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/questionnaires/import" element={
+          <ProtectedRoute>
+            <AdminLayout><QuestionnaireImport /></AdminLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/questionnaires/:id" element={
+          <ProtectedRoute>
+            <AdminLayout><AdminQuestionnaireDetail /></AdminLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/questionnaires/:id/edit" element={
+          <ProtectedRoute>
+            <AdminLayout><QuestionnaireEdit /></AdminLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/questionnaires/:id/versions" element={
+          <ProtectedRoute>
+            <AdminLayout><QuestionnaireVersions /></AdminLayout>
           </ProtectedRoute>
         } />
 

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 
 export default function Dashboard() {
-  const { user, hasRole } = useAuth();
+  const { hasRole } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {

@@ -75,7 +75,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-4 gap-6">
-        <div className="relative overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white">
+        <div className="relative overflow-hidden bg-blue-600 rounded-2xl shadow-lg p-6 text-white">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-16 -mt-16"></div>
           <div className="relative">
             <div className="flex items-center justify-between mb-4">
@@ -89,7 +89,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg p-6 text-white">
+        <div className="relative overflow-hidden bg-green-600 rounded-2xl shadow-lg p-6 text-white">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-16 -mt-16"></div>
           <div className="relative">
             <div className="flex items-center justify-between mb-4">
@@ -103,7 +103,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white">
+        <div className="relative overflow-hidden bg-purple-600 rounded-2xl shadow-lg p-6 text-white">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-16 -mt-16"></div>
           <div className="relative">
             <div className="flex items-center justify-between mb-4">
@@ -117,7 +117,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-lg p-6 text-white">
+        <div className="relative overflow-hidden bg-orange-600 rounded-2xl shadow-lg p-6 text-white">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-16 -mt-16"></div>
           <div className="relative">
             <div className="flex items-center justify-between mb-4">
@@ -215,7 +215,7 @@ export default function AdminDashboard() {
                     to={`/children/${child.id}`}
                     className="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 border transition group"
                   >
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-xl text-white">
+                    <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-xl text-white">
                       {child.gender === "MALE" ? "👦" : child.gender === "FEMALE" ? "👧" : "👤"}
                     </div>
                     <div className="flex-1">
@@ -238,7 +238,7 @@ export default function AdminDashboard() {
             <div className="space-y-3">
               {recentUsers.map((user) => (
                 <div key={user.id} className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center font-bold text-gray-700">
+                  <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center font-bold text-gray-700">
                     {user.username.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -250,7 +250,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white">
+          <div className="bg-purple-600 rounded-2xl shadow-lg p-6 text-white">
             <p className="text-sm text-purple-100 mb-2">This Month</p>
             <p className="text-4xl font-bold mb-1">{stats.assessments}</p>
             <p className="text-purple-100">Total Assessments</p>

@@ -47,7 +47,7 @@ export default function MyChildren() {
         </div>
         <Link
           to="/children/new"
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all font-semibold"
+          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all font-semibold"
         >
           <span className="text-xl">+</span>
           Add New Child
@@ -66,7 +66,7 @@ export default function MyChildren() {
             </p>
             <Link
               to="/children/new"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all font-bold text-lg"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all font-bold text-lg"
             >
               <span className="text-2xl">+</span>
               Add Your First Child
@@ -83,7 +83,7 @@ export default function MyChildren() {
               <div className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-4 flex-1">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-3xl text-white shadow-md">
+                    <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-3xl text-white shadow-md">
                       {child.gender === "MALE" ? "👦" : child.gender === "FEMALE" ? "👧" : "👤"}
                     </div>
                     <div className="flex-1">
