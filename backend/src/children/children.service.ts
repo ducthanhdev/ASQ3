@@ -61,16 +61,23 @@ export class ChildrenService {
 
   create(dto: CreateChildDto, user: any) {
     const parentId = user.role === 'PARENT' ? user.userId : null;
+    const fullName = [dto.lastName, dto.middleName, dto.firstName]
+      .filter(Boolean)
+      .join(' ');
 
     return this.prisma.child.create({
       data: {
-        fullName: dto.fullName,
+        firstName: dto.firstName,
+        middleName: dto.middleName,
+        lastName: dto.lastName,
+        fullName,
         gender: dto.gender as Gender,
         birthDate: new Date(dto.birthDate),
         prematureWeeks: dto.prematureWeeks || 0,
         guardianName: dto.guardianName,
         guardianPhone: dto.guardianPhone,
         note: dto.note,
+        registrationNumber: dto.registrationNumber,
         parentId,
       },
     });
@@ -84,17 +91,27 @@ export class ChildrenService {
       throw new ForbiddenException();
     }
 
+    const updateData: any = {};
+    if (dto.firstName || dto.middleName || dto.lastName) {
+      const firstName = dto.firstName ?? child.firstName;
+      const middleName = dto.middleName ?? child.middleName;
+      const lastName = dto.lastName ?? child.lastName;
+      updateData.firstName = firstName;
+      updateData.middleName = middleName;
+      updateData.lastName = lastName;
+      updateData.fullName = [lastName, middleName, firstName].filter(Boolean).join(' ');
+    }
+    if (dto.gender) updateData.gender = dto.gender as Gender;
+    if (dto.birthDate) updateData.birthDate = new Date(dto.birthDate);
+    if (dto.prematureWeeks !== undefined) updateData.prematureWeeks = dto.prematureWeeks;
+    if (dto.guardianName !== undefined) updateData.guardianName = dto.guardianName;
+    if (dto.guardianPhone !== undefined) updateData.guardianPhone = dto.guardianPhone;
+    if (dto.note !== undefined) updateData.note = dto.note;
+    if (dto.registrationNumber !== undefined) updateData.registrationNumber = dto.registrationNumber;
+
     return this.prisma.child.update({
       where: { id },
-      data: {
-        fullName: dto.fullName,
-        gender: dto.gender as Gender,
-        birthDate: dto.birthDate ? new Date(dto.birthDate) : undefined,
-        prematureWeeks: dto.prematureWeeks,
-        guardianName: dto.guardianName,
-        guardianPhone: dto.guardianPhone,
-        note: dto.note,
-      },
+      data: updateData,
     });
   }
 

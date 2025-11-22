@@ -255,6 +255,9 @@ async function main() {
   const child = await prisma.child.create({
     data: {
       parentId: parent.id,
+      firstName: 'A',
+      lastName: 'Nguyễn',
+      middleName: 'Văn',
       fullName: 'Nguyễn Văn A',
       birthDate: new Date('2024-01-10'),
       prematureWeeks: 0,

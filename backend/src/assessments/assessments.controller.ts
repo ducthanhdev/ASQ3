@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Put, Delete, Param, ParseIntPipe, Post, UseGuards, Request } from '@nestjs/common';
 import { CreateAssessmentDto } from './dto/create-assessment.dto';
 import { UpdateAssessmentDto } from './dto/update-assessment.dto';
+import { SubmitOnlineAssessmentDto } from './dto/submit-online-assessment.dto';
 import { AssessmentsService } from './assessments.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -25,6 +26,11 @@ export class AssessmentsController {
   @Post()
   create(@Body() dto: CreateAssessmentDto, @Request() req) {
     return this.service.create(dto, req.user);
+  }
+
+  @Post('online/submit')
+  submitOnline(@Body() dto: SubmitOnlineAssessmentDto, @Request() req) {
+    return this.service.submitOnline(dto, req.user);
   }
 
   @Get(':id')

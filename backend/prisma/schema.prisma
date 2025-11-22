@@ -19,16 +19,31 @@ enum Gender {
   OTHER
 }
 
+enum Relationship {
+  PARENT
+  GUARDIAN
+  TEACHER
+  CHILDCARE_PROVIDER
+  GRANDPARENT
+  FOSTER_PARENT
+  OTHER
+}
+
 model User {
-  id            Int       @id @default(autoincrement())
-  username      String    @unique
-  email         String?   @unique
-  passwordHash  String
-  role          Role      @default(PARENT)
-  tokenVersion  Int       @default(0)
-  refreshToken  String?   @db.Text
-  lastLoginAt   DateTime?
-  createdAt     DateTime  @default(now())
+  id           Int       @id @default(autoincrement())
+  username     String    @unique
+  email        String?   @unique
+  passwordHash String
+  role         Role      @default(PARENT)
+  firstName    String?
+  middleName   String?
+  lastName     String?
+  phone        String?
+  address      String?   @db.Text
+  tokenVersion Int       @default(0)
+  refreshToken String?   @db.Text
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
 
   children    Child[]
   assessments Assessment[] @relation("evaluator")
@@ -40,31 +55,35 @@ model User {
  * 2. CHILDREN
  */
 model Child {
-  id              Int          @id @default(autoincrement())
-  parentId        Int?
-  fullName        String
-  gender          Gender       @default(MALE)
-  birthDate       DateTime
-  prematureWeeks  Int          @default(0)
-  guardianName    String?      @map("guardian_name")
-  guardianPhone   String?      @map("guardian_phone")
-  note            String?      @db.Text
-  createdAt       DateTime     @default(now())
-  parent          User?        @relation(fields: [parentId], references: [id])
-  assessments     Assessment[]
+  id                 Int          @id @default(autoincrement())
+  parentId           Int?
+  firstName          String
+  middleName         String?
+  lastName           String
+  fullName           String       @default("")
+  gender             Gender       @default(MALE)
+  birthDate          DateTime
+  prematureWeeks     Int          @default(0)
+  guardianName       String?      @map("guardian_name")
+  guardianPhone      String?      @map("guardian_phone")
+  note               String?      @db.Text
+  registrationNumber String?      @map("registration_number")
+  createdAt          DateTime     @default(now())
+  parent             User?        @relation(fields: [parentId], references: [id])
+  assessments        Assessment[]
 }
 
 /**
  * 3. QUESTIONNAIRES
  */
 model Questionnaire {
-  id       Int    @id @default(autoincrement())
-  code     String @unique
-  title    String
-  minMonth Int
-  maxMonth Int
-  language String
-  createdAt     DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  code      String   @unique
+  title     String
+  minMonth  Int
+  maxMonth  Int
+  language  String
+  createdAt DateTime @default(now())
 
   versions     QuestionnaireVersion[]
   ocrTemplates OcrTemplate[]
@@ -94,19 +113,32 @@ model Assessment {
   questionnaireVersionId Int
   evaluatorId            Int?
   assessmentDate         DateTime
+  completionDate         DateTime @default(now())
   answersJson            Json?
   scoresJson             Json?
   summaryResultJson      Json?
   finalConclusion        String   @default("PENDING_REVIEW")
   method                 String   @default("ONLINE")
   scanFileId             Int?     @unique
-  createdAt              DateTime @default(now())
+
+  evaluatorFirstName        String?
+  evaluatorMiddleName       String?
+  evaluatorLastName         String?
+  relationship              Relationship?
+  evaluatorAddress          String?       @db.Text
+  evaluatorHomePhone        String?
+  evaluatorOtherPhone       String?
+  evaluatorEmail            String?
+  helperName                String?
+  programRegistrationNumber String?
+  programName               String?
+
+  createdAt DateTime @default(now())
 
   child                Child                @relation(fields: [childId], references: [id])
   questionnaireVersion QuestionnaireVersion @relation(fields: [questionnaireVersionId], references: [id])
   evaluator            User?                @relation("evaluator", fields: [evaluatorId], references: [id])
 
-  // ---- FIXED: Relation 1–1 with File ----
   scanFile File? @relation("AssessmentScanFile", fields: [scanFileId], references: [id])
 
   followUps FollowUp[]

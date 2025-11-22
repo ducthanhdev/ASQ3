@@ -3,7 +3,15 @@ import { IsString, IsDateString, IsInt, IsOptional, IsEnum, Min } from 'class-va
 export class UpdateChildDto {
   @IsString()
   @IsOptional()
-  fullName?: string;
+  firstName?: string;
+
+  @IsString()
+  @IsOptional()
+  middleName?: string;
+
+  @IsString()
+  @IsOptional()
+  lastName?: string;
 
   @IsEnum(['MALE', 'FEMALE', 'OTHER'])
   @IsOptional()
@@ -29,4 +37,8 @@ export class UpdateChildDto {
   @IsString()
   @IsOptional()
   note?: string;
+
+  @IsString()
+  @IsOptional()
+  registrationNumber?: string;
 }

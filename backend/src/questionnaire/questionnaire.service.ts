@@ -5,6 +5,7 @@ import { UpdateQuestionnaireDto } from './dto/update-questionnaire.dto';
 import { CreateManualQuestionnaireDto } from './dto/create-manual-questionnaire.dto';
 import { ImportJsonQuestionnaireDto } from './dto/import-json-questionnaire.dto';
 import { CreateVersionDto } from './dto/create-version.dto';
+import { computeAdjustedAge } from '../common/utils/age.util';
 
 @Injectable()
 export class QuestionnaireService {
@@ -173,6 +174,49 @@ export class QuestionnaireService {
     });
 
     return this.prisma.questionnaire.delete({ where: { id } });
+  }
+
+  async autoSelect(childId: number) {
+    const child = await this.prisma.child.findUnique({
+      where: { id: childId },
+    });
+    if (!child) throw new NotFoundException('Child not found');
+
+    const ageMonths = computeAdjustedAge(
+      child.birthDate,
+      new Date(),
+      child.prematureWeeks,
+    );
+
+    const questionnaire = await this.prisma.questionnaire.findFirst({
+      where: {
+        minMonth: { lte: ageMonths },
+        maxMonth: { gte: ageMonths },
+      },
+      include: {
+        versions: {
+          orderBy: { id: 'desc' },
+          take: 1,
+        },
+      },
+    });
+
+    if (!questionnaire || !questionnaire.versions[0]) {
+      throw new NotFoundException(
+        `No questionnaire found for age ${ageMonths} months`,
+      );
+    }
+
+    return {
+      child: {
+        id: child.id,
+        fullName: child.fullName,
+        ageMonths,
+        birthDate: child.birthDate,
+      },
+      questionnaire,
+      version: questionnaire.versions[0],
+    };
   }
 
   private buildStructureFromManual(dto: CreateManualQuestionnaireDto) {

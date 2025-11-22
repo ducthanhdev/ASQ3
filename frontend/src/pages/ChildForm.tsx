@@ -3,13 +3,16 @@ import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../api/client";
 
 interface ChildFormData {
-  fullName: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
   gender: string;
   birthDate: string;
   prematureWeeks: number;
   guardianName: string;
   guardianPhone: string;
   note: string;
+  registrationNumber: string;
 }
 
 export default function ChildForm() {
@@ -17,13 +20,16 @@ export default function ChildForm() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<ChildFormData>({
-    fullName: "",
+    firstName: "",
+    middleName: "",
+    lastName: "",
     gender: "MALE",
     birthDate: "",
     prematureWeeks: 0,
     guardianName: "",
     guardianPhone: "",
     note: "",
+    registrationNumber: "",
   });
 
   useEffect(() => {
@@ -31,13 +37,16 @@ export default function ChildForm() {
       api.get(`/children/${id}`).then((res) => {
         const child = res.data;
         setFormData({
-          fullName: child.fullName,
+          firstName: child.firstName || "",
+          middleName: child.middleName || "",
+          lastName: child.lastName || "",
           gender: child.gender,
           birthDate: child.birthDate.split("T")[0],
           prematureWeeks: child.prematureWeeks,
           guardianName: child.guardianName || "",
           guardianPhone: child.guardianPhone || "",
           note: child.note || "",
+          registrationNumber: child.registrationNumber || "",
         });
       });
     }
@@ -73,16 +82,56 @@ export default function ChildForm() {
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg border p-8 space-y-6">
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Họ (Last Name) *
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="Nhập họ"
+              value={formData.lastName}
+              onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+              className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Tên đệm (Middle Name)
+            </label>
+            <input
+              type="text"
+              placeholder="Nhập tên đệm"
+              value={formData.middleName}
+              onChange={(e) => setFormData({ ...formData, middleName: e.target.value })}
+              className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Tên (First Name) *
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="Nhập tên"
+              value={formData.firstName}
+              onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+              className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+            />
+          </div>
+        </div>
+
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Full Name *
+            Số đăng kí của trẻ (Registration Number)
           </label>
           <input
             type="text"
-            required
-            placeholder="Enter child's full name"
-            value={formData.fullName}
-            onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+            placeholder="Nhập số đăng kí"
+            value={formData.registrationNumber}
+            onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })}
             className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
           />
         </div>

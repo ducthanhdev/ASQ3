@@ -67,6 +67,12 @@ export default function AppRoutes() {
             <MainLayout><ChildForm /></MainLayout>
           </ProtectedRoute>
         } />
+
+        <Route path="/children/:id/new-assessment" element={
+          <ProtectedRoute>
+            <MainLayout><AssessmentForm /></MainLayout>
+          </ProtectedRoute>
+        } />
         
         <Route path="/users" element={
           <ProtectedRoute>

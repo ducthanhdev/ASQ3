@@ -3,7 +3,15 @@ import { IsString, IsNotEmpty, IsDateString, IsInt, IsOptional, IsEnum, Min } fr
 export class CreateChildDto {
   @IsString()
   @IsNotEmpty()
-  fullName: string;
+  firstName: string;
+
+  @IsString()
+  @IsOptional()
+  middleName?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  lastName: string;
 
   @IsEnum(['MALE', 'FEMALE', 'OTHER'])
   gender: string;
@@ -27,4 +35,8 @@ export class CreateChildDto {
   @IsString()
   @IsOptional()
   note?: string;
+
+  @IsString()
+  @IsOptional()
+  registrationNumber?: string;
 }

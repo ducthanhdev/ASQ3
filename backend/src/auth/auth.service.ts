@@ -64,9 +64,9 @@ export class AuthService {
         secret: this.config.get('JWT_REFRESH_SECRET'),
       });
 
-      const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
         where: { id: payload.sub },
-      });
+    });
 
       if (!user || user.refreshToken !== refreshToken || user.tokenVersion !== payload.version) {
         throw new UnauthorizedException();
