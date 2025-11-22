@@ -10,11 +10,9 @@ export default function QuestionnaireImport() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const processFile = (file: File) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
@@ -27,6 +25,34 @@ export default function QuestionnaireImport() {
       }
     };
     reader.readAsText(file);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processFile(file);
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type === "application/json") {
+      processFile(file);
+    } else {
+      setError("Please drop a valid JSON file");
+    }
   };
 
   const handleSubmit = async () => {
@@ -113,17 +139,29 @@ export default function QuestionnaireImport() {
             </p>
           </CardHeader>
           <CardContent>
-            <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all">
-              <FileJson className="w-12 h-12 text-gray-400 mb-3" />
-              <span className="text-sm text-gray-600 font-medium">Click to upload JSON file</span>
-              <span className="text-xs text-gray-500 mt-1">or drag and drop</span>
-              <input
-                type="file"
-                accept=".json"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-            </label>
+            <div
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+              className={`flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
+                dragActive
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-gray-300 hover:border-blue-500 hover:bg-blue-50"
+              }`}
+            >
+              <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer">
+                <FileJson className="w-12 h-12 text-gray-400 mb-3" />
+                <span className="text-sm text-gray-600 font-medium">Click to upload JSON file</span>
+                <span className="text-xs text-gray-500 mt-1">or drag and drop</span>
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </label>
+            </div>
           </CardContent>
         </Card>
 
