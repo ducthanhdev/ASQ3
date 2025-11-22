@@ -32,5 +32,19 @@ export class AuthController {
   async logout(@Request() req) {
     await this.authService.logout(req.user.userId);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Post('me')
+  getProfile(@Request() req) {
+    return this.authService.getProfile(req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Post('verify')
+  verify(@Request() req) {
+    return { valid: true, user: req.user };
+  }
 }
 

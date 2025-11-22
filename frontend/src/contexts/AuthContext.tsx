@@ -12,6 +12,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
+  loading: boolean;
   login: (username: string, password: string) => Promise<void>;
   register: (username: string, password: string, email?: string) => Promise<void>;
   logout: () => void;
@@ -23,12 +24,29 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    const verifyAuth = async () => {
+      const token = localStorage.getItem("access_token");
+      const storedUser = localStorage.getItem("user");
+      
+      if (token && storedUser) {
+        try {
+          const { data } = await api.post("/auth/me");
+          setUser(data);
+          localStorage.setItem("user", JSON.stringify(data));
+        } catch {
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
+          localStorage.removeItem("user");
+          setUser(null);
+        }
+      }
+      setLoading(false);
+    };
+
+    verifyAuth();
   }, []);
 
   const login = async (username: string, password: string) => {
@@ -73,6 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   return (
     <AuthContext.Provider value={{
       user,
+      loading,
       login,
       register,
       logout,
