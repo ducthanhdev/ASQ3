@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { api } from "../api/client";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { ArrowLeft, CheckCircle, AlertTriangle, Info, Loader2 } from "lucide-react";
+import { ArrowLeft, CheckCircle, AlertTriangle, Info, Loader2, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 interface DomainScore {
@@ -15,17 +15,17 @@ interface DomainScore {
 interface Assessment {
   id: number;
   assessmentDate: string;
-  finalConclusion: string;
-  scoresJson: Record<string, DomainScore>;
-  summaryResultJson: {
-    domainScores: Record<string, DomainScore>;
-    finalConclusion: string;
+  finalConclusion?: string;
+  scoresJson?: Record<string, DomainScore>;
+  summaryResultJson?: {
+    domainScores?: Record<string, DomainScore>;
+    finalConclusion?: string;
   };
   child: {
     id: number;
     fullName: string;
   };
-  questionnaireVersion: {
+  questionnaireVersion?: {
     version: string;
     questionnaire: {
       code: string;
@@ -41,15 +41,30 @@ export default function AssessmentResult() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id) {
+      setLoading(false);
+      return;
+    }
 
     api
       .get(`/assessments/${id}`)
       .then((res) => {
-        setAssessment(res.data);
+        const data = res.data;
+        if (!data) {
+          toast.error("Invalid assessment data");
+          setLoading(false);
+          return;
+        }
+
+        if (!data.scoresJson && !data.summaryResultJson) {
+          toast.error("Assessment data missing scores");
+        }
+
+        setAssessment(data);
         setLoading(false);
       })
       .catch((err) => {
+        console.error("Assessment load error:", err);
         toast.error(err.response?.data?.message || "Failed to load assessment");
         setLoading(false);
       });
@@ -91,23 +106,75 @@ export default function AssessmentResult() {
     personal_social: "Cá nhân - Xã hội",
   };
 
-  const getConclusionColor = (conclusion: string) => {
-    if (conclusion === "REFER") return "bg-red-100 text-red-800 border-red-300";
-    if (conclusion === "MONITOR") return "bg-yellow-100 text-yellow-800 border-yellow-300";
-    return "bg-green-100 text-green-800 border-green-300";
-  };
+  if (Object.keys(domainScores).length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-6">
+            <p className="text-yellow-800 font-semibold mb-2">Dữ liệu đánh giá chưa hoàn chỉnh</p>
+            <p className="text-yellow-700 text-sm">Điểm số theo lĩnh vực chưa được tính toán.</p>
+          </div>
+          <div className="bg-white rounded-xl border p-6 mb-6">
+            <h2 className="font-semibold text-lg mb-4">Thông tin đánh giá</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-600">Trẻ</p>
+                <p className="font-semibold">{assessment.child.fullName}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Ngày đánh giá</p>
+                <p className="font-semibold">
+                  {new Date(assessment.assessmentDate).toLocaleDateString("vi-VN")}
+                </p>
+              </div>
+            </div>
+          </div>
+          <Button onClick={() => navigate(-1)}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Quay lại
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
-  const getConclusionIcon = (conclusion: string) => {
-    if (conclusion === "REFER") return <AlertTriangle className="w-5 h-5" />;
-    if (conclusion === "MONITOR") return <Info className="w-5 h-5" />;
-    return <CheckCircle className="w-5 h-5" />;
+  const getConclusionConfig = (conclusion: string) => {
+    if (conclusion === "REFER") {
+      return {
+        color: "bg-red-600 text-white",
+        border: "border-red-300",
+        bg: "bg-red-50",
+        icon: <AlertTriangle className="w-5 h-5" />,
+        label: "Cần đánh giá chuyên sâu",
+        message: "Trẻ có dấu hiệu chậm phát triển đáng kể. Cần được đánh giá chuyên sâu bởi chuyên gia.",
+      };
+    }
+    if (conclusion === "MONITOR") {
+      return {
+        color: "bg-yellow-500 text-white",
+        border: "border-yellow-300",
+        bg: "bg-yellow-50",
+        icon: <Info className="w-5 h-5" />,
+        label: "Cần theo dõi",
+        message: "Trẻ có nguy cơ chậm phát triển. Cần tiếp tục theo dõi và đánh giá lại sau một thời gian.",
+      };
+    }
+    return {
+      color: "bg-green-600 text-white",
+      border: "border-green-300",
+      bg: "bg-green-50",
+      icon: <CheckCircle className="w-5 h-5" />,
+      label: "Bình thường",
+      message: "Trẻ phát triển trong phạm vi bình thường. Tiếp tục theo dõi định kỳ.",
+    };
   };
 
   const finalConclusion = assessment.finalConclusion || assessment.summaryResultJson?.finalConclusion || "NORMAL";
+  const finalConfig = getConclusionConfig(finalConclusion);
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="mb-6">
           <Button
             variant="ghost"
@@ -117,34 +184,34 @@ export default function AssessmentResult() {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
-          <h1 className="text-4xl font-extrabold text-gray-900 mb-2">Assessment Result</h1>
+          <h1 className="text-4xl font-extrabold text-gray-900 mb-2">Kết quả đánh giá ASQ-3</h1>
         </div>
 
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Assessment Information</CardTitle>
+            <CardTitle>Thông tin đánh giá</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-gray-600">Child</p>
+                <p className="text-sm text-gray-600">Trẻ</p>
                 <p className="font-semibold text-lg">{assessment.child.fullName}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Assessment Date</p>
+                <p className="text-sm text-gray-600">Ngày đánh giá</p>
                 <p className="font-semibold text-lg">
                   {new Date(assessment.assessmentDate).toLocaleDateString("vi-VN")}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Questionnaire</p>
+                <p className="text-sm text-gray-600">Bộ câu hỏi</p>
                 <p className="font-semibold text-lg">
-                  {assessment.questionnaireVersion.questionnaire.title}
+                  {assessment.questionnaireVersion?.questionnaire?.title || 'N/A'}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Version</p>
-                <p className="font-semibold text-lg">{assessment.questionnaireVersion.version}</p>
+                <p className="text-sm text-gray-600">Phiên bản</p>
+                <p className="font-semibold text-lg">{assessment.questionnaireVersion?.version || 'N/A'}</p>
               </div>
             </div>
           </CardContent>
@@ -153,104 +220,81 @@ export default function AssessmentResult() {
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
-              Final Conclusion
-              <span
-                className={`flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-semibold ${getConclusionColor(
-                  finalConclusion
-                )}`}
-              >
-                {getConclusionIcon(finalConclusion)}
-                {finalConclusion}
+              Kết luận tổng quát
+              <span className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${finalConfig.color}`}>
+                {finalConfig.icon}
+                {finalConfig.label}
               </span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {finalConclusion === "REFER" && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-red-800 font-medium mb-2">⚠️ Refer Required</p>
-                <p className="text-red-700 text-sm">
-                  This child shows significant developmental concerns. Please refer to a specialist for further evaluation.
-                </p>
-              </div>
-            )}
-            {finalConclusion === "MONITOR" && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <p className="text-yellow-800 font-medium mb-2">📊 Monitor</p>
-                <p className="text-yellow-700 text-sm">
-                  This child is at risk. Continue monitoring and consider follow-up assessments.
-                </p>
-              </div>
-            )}
-            {finalConclusion === "NORMAL" && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <p className="text-green-800 font-medium mb-2">✅ Normal Development</p>
-                <p className="text-green-700 text-sm">
-                  This child is developing within expected ranges. Continue regular monitoring.
-                </p>
-              </div>
-            )}
+            <div className={`${finalConfig.bg} border-2 ${finalConfig.border} rounded-lg p-6`}>
+              <p className="font-semibold text-lg mb-2 text-gray-900">{finalConfig.label}</p>
+              <p className="text-gray-700">{finalConfig.message}</p>
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Domain Scores</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Điểm số theo từng lĩnh vực
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {Object.entries(domainScores).map(([key, score]) => (
-              <div
-                key={key}
-                className={`p-4 rounded-lg border-2 ${
-                  score.conclusion === "REFER"
-                    ? "bg-red-50 border-red-300"
-                    : score.conclusion === "MONITOR"
-                    ? "bg-yellow-50 border-yellow-300"
-                    : "bg-green-50 border-green-300"
-                }`}
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-lg text-gray-900">
-                    {domainTitles[key] || key}
-                  </h3>
-                  <span
-                    className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${getConclusionColor(
-                      score.conclusion
-                    )}`}
-                  >
-                    {getConclusionIcon(score.conclusion)}
-                    {score.conclusion}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div>
-                      <p className="text-xs text-gray-600">Score</p>
-                      <p className="text-2xl font-bold text-gray-900">{score.total}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600">Cutoff</p>
-                      <p className="text-lg font-semibold text-gray-700">{score.cutoff}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-gray-600">Difference</p>
-                    <p
-                      className={`text-lg font-semibold ${
-                        score.total >= score.cutoff
-                          ? "text-green-600"
-                          : score.total >= score.cutoff - 2
-                          ? "text-yellow-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {score.total >= score.cutoff
-                        ? `+${(score.total - score.cutoff).toFixed(1)}`
-                        : (score.total - score.cutoff).toFixed(1)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b-2 border-gray-200">
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Lĩnh vực</th>
+                    <th className="text-center py-3 px-4 font-semibold text-gray-700">Điểm</th>
+                    <th className="text-center py-3 px-4 font-semibold text-gray-700">Ngưỡng</th>
+                    <th className="text-center py-3 px-4 font-semibold text-gray-700">Chênh lệch</th>
+                    <th className="text-center py-3 px-4 font-semibold text-gray-700">Kết luận</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(domainScores).map(([key, score]: [string, any]) => {
+                    if (!score || typeof score.total !== 'number' || typeof score.cutoff !== 'number') {
+                      return null;
+                    }
+                    const config = getConclusionConfig(score.conclusion || 'NORMAL');
+                    const difference = score.total - score.cutoff;
+                    return (
+                      <tr key={key} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                        <td className="py-4 px-4">
+                          <span className="font-semibold text-gray-900">{domainTitles[key] || key}</span>
+                        </td>
+                        <td className="py-4 px-4 text-center">
+                          <span className="text-2xl font-bold text-gray-900">{score.total}</span>
+                        </td>
+                        <td className="py-4 px-4 text-center">
+                          <span className="text-lg font-semibold text-gray-700">{score.cutoff}</span>
+                        </td>
+                        <td className="py-4 px-4 text-center">
+                          <span
+                            className={`text-lg font-semibold ${
+                              difference >= 0 ? "text-green-600" : difference >= -2 ? "text-yellow-600" : "text-red-600"
+                            }`}
+                          >
+                            {difference >= 0 ? `+${difference.toFixed(1)}` : difference.toFixed(1)}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 text-center">
+                          <span
+                            className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${config.color}`}
+                          >
+                            {config.icon}
+                            {config.label}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </CardContent>
         </Card>
 
@@ -258,12 +302,12 @@ export default function AssessmentResult() {
           <Link to={`/children/${assessment.child.id}`}>
             <Button variant="outline">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Child Profile
+              Về hồ sơ trẻ
             </Button>
           </Link>
           <Link to={`/children/${assessment.child.id}/new-assessment`}>
             <Button className="bg-blue-600 hover:bg-blue-700">
-              New Assessment
+              Đánh giá mới
             </Button>
           </Link>
         </div>

@@ -73,7 +73,14 @@ export class AssessmentsService {
   async getOne(id: number, user: any) {
     const assessment = await this.prisma.assessment.findUnique({
       where: { id },
-      include: { child: true },
+      include: {
+        child: true,
+        questionnaireVersion: {
+          include: {
+            questionnaire: true,
+          },
+        },
+      },
     });
     if (!assessment) throw new NotFoundException();
 
@@ -95,6 +102,55 @@ export class AssessmentsService {
     return this.prisma.assessment.delete({ where: { id } });
   }
 
+  private calculateDomainScores(structure: any, answers: Record<string, string>) {
+    const scoreValues = structure.rules?.score_values || { Y: 10, S: 5, N: 0 };
+    const domainTotals = {};
+
+    for (const domain of structure.domains || []) {
+      let total = 0;
+      for (const q of domain.questions || []) {
+        const answer = answers[q.id];
+        if (answer && scoreValues[answer] !== undefined) {
+          total += scoreValues[answer];
+        }
+      }
+      domainTotals[domain.key] = total;
+    }
+
+    return domainTotals;
+  }
+
+  private classifyResults(structure: any, domainTotals: Record<string, number>) {
+    const monitorMargin = structure.rules?.monitor_margin || 2;
+    const domainScores = {};
+    const domainConclusions = {};
+
+    for (const domain of structure.domains || []) {
+      const total = domainTotals[domain.key] || 0;
+      const cutoff = domain.cutoff_score;
+      
+      let conclusion = 'NORMAL';
+      if (total < cutoff - monitorMargin) {
+        conclusion = 'REFER';
+      } else if (total < cutoff) {
+        conclusion = 'MONITOR';
+      }
+
+      domainScores[domain.key] = {
+        total,
+        cutoff,
+        conclusion,
+      };
+      domainConclusions[domain.key] = conclusion;
+    }
+
+    const hasRefer = Object.values(domainConclusions).includes('REFER');
+    const hasMonitor = Object.values(domainConclusions).includes('MONITOR');
+    const finalConclusion = hasRefer ? 'REFER' : hasMonitor ? 'MONITOR' : 'NORMAL';
+
+    return { domainScores, finalConclusion };
+  }
+
   async submitOnline(dto: SubmitOnlineAssessmentDto, user: any) {
     const child = await this.prisma.child.findUnique({
       where: { id: dto.childId },
@@ -114,40 +170,8 @@ export class AssessmentsService {
     if (!version) throw new NotFoundException('Questionnaire version not found');
 
     const structure = version.structureJson as any;
-    const scoreValues = structure.rules?.score_values || { Y: 10, S: 5, N: 0 };
-    const monitorMargin = structure.rules?.monitor_margin || 2;
-
-    const domainScores = {};
-    const domainConclusions = {};
-
-    for (const domain of structure.domains || []) {
-      let total = 0;
-      for (const q of domain.questions || []) {
-        const answer = dto.answers[q.id];
-        if (answer && scoreValues[answer] !== undefined) {
-          total += scoreValues[answer];
-        }
-      }
-
-      const cutoff = domain.cutoff_score;
-      let conclusion = 'NORMAL';
-      if (total < cutoff - monitorMargin) {
-        conclusion = 'REFER';
-      } else if (total < cutoff) {
-        conclusion = 'MONITOR';
-      }
-
-      domainScores[domain.key] = {
-        total,
-        cutoff,
-        conclusion,
-      };
-      domainConclusions[domain.key] = conclusion;
-    }
-
-    const hasRefer = Object.values(domainConclusions).includes('REFER');
-    const hasMonitor = Object.values(domainConclusions).includes('MONITOR');
-    const finalConclusion = hasRefer ? 'REFER' : hasMonitor ? 'MONITOR' : 'NORMAL';
+    const domainTotals = this.calculateDomainScores(structure, dto.answers);
+    const { domainScores, finalConclusion } = this.classifyResults(structure, domainTotals);
 
     const assessment = await this.prisma.assessment.create({
       data: {
