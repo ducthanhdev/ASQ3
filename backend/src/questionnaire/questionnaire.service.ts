@@ -146,7 +146,32 @@ export class QuestionnaireService {
     });
   }
 
-  remove(id: number) {
+  async remove(id: number) {
+    const versions = await this.prisma.questionnaireVersion.findMany({
+      where: { questionnaireId: id },
+      include: {
+        assessments: { take: 1 },
+        ocrResults: { take: 1 },
+      },
+    });
+
+    const hasAssessments = versions.some(v => v.assessments.length > 0);
+    const hasOcrResults = versions.some(v => v.ocrResults.length > 0);
+
+    if (hasAssessments || hasOcrResults) {
+      throw new BadRequestException(
+        'Cannot delete questionnaire that has been used in assessments or OCR results'
+      );
+    }
+
+    await this.prisma.questionnaireVersion.deleteMany({
+      where: { questionnaireId: id },
+    });
+
+    await this.prisma.ocrTemplate.deleteMany({
+      where: { questionnaireId: id },
+    });
+
     return this.prisma.questionnaire.delete({ where: { id } });
   }
 
