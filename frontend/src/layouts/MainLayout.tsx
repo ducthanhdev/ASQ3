@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { LayoutDashboard, Users, FileText, Settings, LogOut, User } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, LogOut, User } from 'lucide-react';
 
 export default function MainLayout({ children }: { children: ReactNode }) {
   const { user, logout, hasRole } = useAuth();
@@ -51,10 +51,6 @@ export default function MainLayout({ children }: { children: ReactNode }) {
                     All Children
                   </Link>
                 )}
-                <Link to="/questionnaires" className={navLinkClass('/questionnaires')}>
-                  <FileText className="w-4 h-4" />
-                  Questionnaires
-                </Link>
                 {hasRole("ADMIN") && (
                   <Link to="/admin" className={navLinkClass('/admin')}>
                     <Settings className="w-4 h-4" />

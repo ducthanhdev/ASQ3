@@ -10,7 +10,6 @@ import AllChildren from './pages/AllChildren';
 import ChildForm from './pages/ChildForm';
 import ChildDetail from './pages/ChildDetail';
 import UserManagement from './pages/UserManagement';
-import QuestionnaireList from './pages/QuestionnaireList';
 import QuestionnaireDetail from './pages/QuestionnaireDetail';
 import AssessmentForm from './pages/AssessmentForm';
 import AssessmentResult from './pages/AssessmentResult';
@@ -77,12 +76,6 @@ export default function AppRoutes() {
         <Route path="/users" element={
           <ProtectedRoute>
             <MainLayout><UserManagement /></MainLayout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/questionnaires" element={
-          <ProtectedRoute>
-            <MainLayout><QuestionnaireList /></MainLayout>
           </ProtectedRoute>
         } />
         

@@ -82,9 +82,9 @@ export default function MyChildren() {
           {children.map((child) => (
             <div
               key={child.id}
-              className="bg-white rounded-xl border hover:shadow-md transition-shadow overflow-hidden"
+              className="bg-white rounded-xl border hover:shadow-md transition-shadow overflow-hidden flex flex-col"
             >
-              <div className="p-5">
+              <div className="p-5 flex-1 flex flex-col">
                 <div className="flex items-start gap-4 mb-4">
                   <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 ${
                     child.gender === "MALE" ? "bg-blue-100" : child.gender === "FEMALE" ? "bg-pink-100" : "bg-gray-100"
@@ -99,13 +99,13 @@ export default function MyChildren() {
                     </div>
                   </div>
                 </div>
-                {child.prematureWeeks > 0 && (
-                  <div className="mb-4">
+                <div className="h-8 flex items-start">
+                  {child.prematureWeeks > 0 && (
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-orange-50 text-orange-700 text-xs font-medium rounded-md">
                       Premature {child.prematureWeeks}w
                     </span>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
               <div className="px-5 py-4 bg-gray-50 border-t flex items-center justify-between gap-2">
                 <Link
