@@ -25,6 +25,8 @@ export class AssessmentsService {
       include: {
         child: { select: { id: true, fullName: true } },
         questionnaireVersion: { select: { id: true, version: true } },
+        evaluator: { select: { id: true, username: true } },
+        reviewedBy: { select: { id: true, username: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -89,6 +91,36 @@ export class AssessmentsService {
     }
 
     return assessment;
+  }
+
+  async review(id: number, dto: any, user: any) {
+    if (user.role !== 'SPECIALIST' && user.role !== 'ADMIN') {
+      throw new ForbiddenException('Only specialists and admins can review assessments');
+    }
+
+    const assessment = await this.prisma.assessment.findUnique({
+      where: { id },
+    });
+    if (!assessment) throw new NotFoundException();
+
+    return this.prisma.assessment.update({
+      where: { id },
+      data: {
+        status: dto.status,
+        reviewedById: user.userId,
+        reviewedAt: new Date(),
+      },
+      include: {
+        child: true,
+        questionnaireVersion: {
+          include: {
+            questionnaire: true,
+          },
+        },
+        evaluator: true,
+        reviewedBy: true,
+      },
+    });
   }
 
   update(id: number, dto: UpdateAssessmentDto) {
@@ -173,6 +205,10 @@ export class AssessmentsService {
     const domainTotals = this.calculateDomainScores(structure, dto.answers);
     const { domainScores, finalConclusion } = this.classifyResults(structure, domainTotals);
 
+    const status = user.role === 'PARENT' ? 'PENDING_REVIEW' : 'APPROVED';
+    const reviewedById = user.role === 'SPECIALIST' || user.role === 'ADMIN' ? user.userId : null;
+    const reviewedAt = reviewedById ? new Date() : null;
+
     const assessment = await this.prisma.assessment.create({
       data: {
         childId: dto.childId,
@@ -187,6 +223,9 @@ export class AssessmentsService {
           finalConclusion,
         },
         finalConclusion,
+        status,
+        reviewedById,
+        reviewedAt,
         method: 'ONLINE',
         evaluatorFirstName: dto.evaluatorFirstName || undefined,
         evaluatorMiddleName: dto.evaluatorMiddleName || undefined,
@@ -207,6 +246,8 @@ export class AssessmentsService {
             questionnaire: true,
           },
         },
+        evaluator: true,
+        reviewedBy: true,
       },
     });
 

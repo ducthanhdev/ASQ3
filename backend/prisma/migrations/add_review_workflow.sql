@@ -1,0 +1,7 @@
+ALTER TABLE `Assessment` ADD COLUMN `status` VARCHAR(191) NOT NULL DEFAULT 'PENDING_REVIEW';
+ALTER TABLE `Assessment` ADD COLUMN `reviewedById` INT NULL;
+ALTER TABLE `Assessment` ADD COLUMN `reviewedAt` DATETIME(3) NULL;
+
+ALTER TABLE `Assessment` ADD CONSTRAINT `Assessment_reviewedById_fkey` 
+  FOREIGN KEY (`reviewedById`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+

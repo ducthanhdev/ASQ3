@@ -45,10 +45,11 @@ model User {
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
 
-  children    Child[]
-  assessments Assessment[] @relation("evaluator")
-  followUps   FollowUp[]   @relation("assigned_to_user")
-  uploads     File[]       @relation("uploader")
+  children        Child[]
+  assessments     Assessment[] @relation("evaluator")
+  reviewedAssessments Assessment[] @relation("reviewer")
+  followUps       FollowUp[]   @relation("assigned_to_user")
+  uploads         File[]       @relation("uploader")
 }
 
 /**
@@ -120,6 +121,9 @@ model Assessment {
   finalConclusion        String   @default("PENDING_REVIEW")
   method                 String   @default("ONLINE")
   scanFileId             Int?     @unique
+  status                 String   @default("PENDING_REVIEW")
+  reviewedById           Int?
+  reviewedAt             DateTime?
 
   evaluatorFirstName        String?
   evaluatorMiddleName       String?
@@ -138,6 +142,7 @@ model Assessment {
   child                Child                @relation(fields: [childId], references: [id])
   questionnaireVersion QuestionnaireVersion @relation(fields: [questionnaireVersionId], references: [id])
   evaluator            User?                @relation("evaluator", fields: [evaluatorId], references: [id])
+  reviewedBy           User?                @relation("reviewer", fields: [reviewedById], references: [id])
 
   scanFile File? @relation("AssessmentScanFile", fields: [scanFileId], references: [id])
 

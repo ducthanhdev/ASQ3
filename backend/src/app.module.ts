@@ -8,6 +8,7 @@ import { ChildrenModule } from './children/children.module';
 import { QuestionnaireModule } from './questionnaire/questionnaire.module';
 import { AssessmentsModule } from './assessments/assessments.module';
 import { UsersModule } from './users/users.module';
+import { ReportsModule } from './reports/reports.module';
 import { RolesGuard } from './auth/guards/roles.guard';
 
 @Module({
@@ -21,6 +22,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
     QuestionnaireModule,
     AssessmentsModule,
     UsersModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [

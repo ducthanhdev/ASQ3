@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { api } from "../api/client";
+import { useAuth } from "../contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { ArrowLeft, CheckCircle, AlertTriangle, Info, Loader2, FileText } from "lucide-react";
+import { ArrowLeft, CheckCircle, AlertTriangle, Info, Loader2, FileText, Download, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 interface DomainScore {
@@ -15,6 +16,7 @@ interface DomainScore {
 interface Assessment {
   id: number;
   assessmentDate: string;
+  status?: string;
   finalConclusion?: string;
   scoresJson?: Record<string, DomainScore>;
   summaryResultJson?: {
@@ -32,13 +34,20 @@ interface Assessment {
       title: string;
     };
   };
+  reviewedBy?: {
+    id: number;
+    username: string;
+  };
 }
 
 export default function AssessmentResult() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { hasRole } = useAuth();
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
+  const [reviewing, setReviewing] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -172,6 +181,48 @@ export default function AssessmentResult() {
   const finalConclusion = assessment.finalConclusion || assessment.summaryResultJson?.finalConclusion || "NORMAL";
   const finalConfig = getConclusionConfig(finalConclusion);
 
+  const handleExportPDF = async () => {
+    if (!id) return;
+    if (assessment?.status !== 'APPROVED') {
+      toast.error("Assessment must be approved before exporting PDF");
+      return;
+    }
+    setExporting(true);
+    try {
+      const response = await api.get(`/assessments/${id}/report`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `asq3-report-${id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("PDF exported successfully");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to export PDF");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleReview = async (status: string) => {
+    if (!id) return;
+    setReviewing(true);
+    try {
+      await api.patch(`/assessments/${id}/review`, { status });
+      const res = await api.get(`/assessments/${id}`);
+      setAssessment(res.data);
+      toast.success(`Assessment ${status === 'APPROVED' ? 'approved' : 'rejected'} successfully`);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to review assessment");
+    } finally {
+      setReviewing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-5xl mx-auto">
@@ -298,13 +349,45 @@ export default function AssessmentResult() {
           </CardContent>
         </Card>
 
-        <div className="mt-6 flex gap-4">
+        <div className="mt-6 flex gap-4 flex-wrap">
           <Link to={`/children/${assessment.child.id}`}>
             <Button variant="outline">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Về hồ sơ trẻ
             </Button>
           </Link>
+          {hasRole(['SPECIALIST', 'ADMIN']) && assessment.status === 'PENDING_REVIEW' && (
+            <>
+              <Button
+                onClick={() => handleReview('APPROVED')}
+                disabled={reviewing}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <CheckCircle2 className="w-4 h-4 mr-2" />
+                {reviewing ? "Đang xử lý..." : "Duyệt"}
+              </Button>
+              <Button
+                onClick={() => handleReview('REJECTED')}
+                disabled={reviewing}
+                variant="outline"
+                className="border-red-600 text-red-600 hover:bg-red-50"
+              >
+                <XCircle className="w-4 h-4 mr-2" />
+                Từ chối
+              </Button>
+            </>
+          )}
+          {assessment.status === 'APPROVED' && (
+            <Button
+              onClick={handleExportPDF}
+              disabled={exporting}
+              variant="outline"
+              className="border-green-600 text-green-600 hover:bg-green-50"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              {exporting ? "Đang xuất..." : "Xuất PDF"}
+            </Button>
+          )}
           <Link to={`/children/${assessment.child.id}/new-assessment`}>
             <Button className="bg-blue-600 hover:bg-blue-700">
               Đánh giá mới

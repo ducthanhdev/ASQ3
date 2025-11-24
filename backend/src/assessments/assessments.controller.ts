@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Put, Delete, Param, ParseIntPipe, Post, UseGuards, Request } from '@nestjs/common';
+import { Body, Controller, Get, Put, Delete, Param, ParseIntPipe, Post, Patch, UseGuards, Request } from '@nestjs/common';
 import { CreateAssessmentDto } from './dto/create-assessment.dto';
 import { UpdateAssessmentDto } from './dto/update-assessment.dto';
 import { SubmitOnlineAssessmentDto } from './dto/submit-online-assessment.dto';
+import { ReviewAssessmentDto } from './dto/review-assessment.dto';
 import { AssessmentsService } from './assessments.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -42,6 +43,12 @@ export class AssessmentsController {
   @Roles('SPECIALIST', 'ADMIN')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateAssessmentDto) {
     return this.service.update(id, dto);
+  }
+
+  @Patch(':id/review')
+  @Roles('SPECIALIST', 'ADMIN')
+  review(@Param('id', ParseIntPipe) id: number, @Body() dto: ReviewAssessmentDto, @Request() req) {
+    return this.service.review(id, dto, req.user);
   }
 
   @Delete(':id')
