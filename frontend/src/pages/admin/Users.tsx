@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "../../api/client";
+import { toast } from "sonner";
 
 interface User {
   id: number;
@@ -15,6 +16,7 @@ export default function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState<string>("ALL");
+  const [updatingRole, setUpdatingRole] = useState<number | null>(null);
 
   const loadUsers = () => {
     api.get("/users")
@@ -26,13 +28,27 @@ export default function AdminUsers() {
     loadUsers();
   }, []);
 
+  const handleUpdateRole = async (id: number, newRole: string) => {
+    setUpdatingRole(id);
+    try {
+      await api.patch(`/users/${id}/role`, { role: newRole });
+      setUsers(users.map(u => u.id === id ? { ...u, role: newRole } : u));
+      toast.success("Role updated successfully");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to update role");
+    } finally {
+      setUpdatingRole(null);
+    }
+  };
+
   const handleDelete = async (id: number, username: string) => {
     if (!confirm(`Delete user ${username}?`)) return;
     try {
       await api.delete(`/users/${id}`);
       loadUsers();
+      toast.success("User deleted successfully");
     } catch {
-      alert("Failed to delete user");
+      toast.error("Failed to delete user");
     }
   };
 
@@ -147,15 +163,22 @@ export default function AdminUsers() {
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-700">{user.email || "-"}</td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                      user.role === "ADMIN"
-                        ? "bg-red-100 text-red-700"
-                        : user.role === "SPECIALIST"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-green-100 text-green-700"
-                    }`}>
-                      {user.role}
-                    </span>
+                    <select
+                      value={user.role}
+                      onChange={(e) => handleUpdateRole(user.id, e.target.value)}
+                      disabled={updatingRole === user.id}
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+                        user.role === "ADMIN"
+                          ? "bg-red-100 text-red-700 border-red-200"
+                          : user.role === "SPECIALIST"
+                          ? "bg-blue-100 text-blue-700 border-blue-200"
+                          : "bg-green-100 text-green-700 border-green-200"
+                      } ${updatingRole === user.id ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:opacity-80"}`}
+                    >
+                      <option value="PARENT">PARENT</option>
+                      <option value="SPECIALIST">SPECIALIST</option>
+                      <option value="ADMIN">ADMIN</option>
+                    </select>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
                     {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : (

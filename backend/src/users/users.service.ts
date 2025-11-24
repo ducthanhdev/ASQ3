@@ -90,6 +90,23 @@ export class UsersService {
     });
   }
 
+  async updateRole(id: number, role: string) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException();
+
+    return this.prisma.user.update({
+      where: { id },
+      data: { role: role as any },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+  }
+
   async remove(id: number) {
     return this.prisma.user.delete({ where: { id } });
   }
