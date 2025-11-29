@@ -35,6 +35,11 @@ export class QuestionnaireController {
     return this.questionnaireService.getLatestVersion(id);
   }
 
+  @Get('versions/:id')
+  getVersionById(@Param('id', ParseIntPipe) id: number) {
+    return this.questionnaireService.getVersionById(id);
+  }
+
   @Get(':id/versions')
   @Roles('ADMIN')
   getVersions(@Param('id', ParseIntPipe) id: number) {

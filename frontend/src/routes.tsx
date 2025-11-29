@@ -23,6 +23,8 @@ import QuestionnaireImport from './pages/admin/QuestionnaireImport';
 import AdminQuestionnaireDetail from './pages/admin/QuestionnaireDetail';
 import QuestionnaireVersions from './pages/admin/QuestionnaireVersions';
 import QuestionnaireEdit from './pages/admin/QuestionnaireEdit';
+import ScanAssessment from './pages/ScanAssessment';
+import PrintQuestionnaire from './pages/PrintQuestionnaire';
 
 export default function AppRoutes() {
   return (
@@ -94,6 +96,18 @@ export default function AppRoutes() {
         <Route path="/assessment/:id" element={
           <ProtectedRoute>
             <MainLayout><AssessmentResult /></MainLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/scan-assessment" element={
+          <ProtectedRoute>
+            <MainLayout><ScanAssessment /></MainLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/print-questionnaire/:id" element={
+          <ProtectedRoute>
+            <PrintQuestionnaire />
           </ProtectedRoute>
         } />
 

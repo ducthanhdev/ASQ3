@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - '5173:5173'
+    environment:
+      - VITE_API_URL=http://localhost:3000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - api
+
+  api:
+    build: ./backend
+    ports:
+      - '3000:3000'
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-mysql://user:password@db:3306/asq3}
+      - JWT_SECRET=${JWT_SECRET:-your-secret-key}
+      - JWT_EXPIRES_IN=15m
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-your-refresh-secret}
+      - JWT_REFRESH_EXPIRES_IN=7d
+      - FRONTEND_URL=http://localhost:5173
+      - OCR_SERVICE_URL=http://ocr:8000
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - ./backend/tmp:/app/tmp
+    depends_on:
+      - db
+      - ocr
+
+  ocr:
+    build: ./ocr-service
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./ocr-service:/app
+      - /tmp/ocr_cache:/tmp
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  db:
+    image: mysql:8.0
+    ports:
+      - '3306:3306'
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=asq3
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
+

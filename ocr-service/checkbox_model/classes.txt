@@ -1,0 +1,7 @@
+checkbox_empty
+checkbox_marked
+label_c
+label_d
+label_k
+mark_x
+

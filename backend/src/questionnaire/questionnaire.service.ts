@@ -47,6 +47,21 @@ export class QuestionnaireService {
     return version;
   }
 
+  async getVersionById(id: number) {
+    const version = await this.prisma.questionnaireVersion.findUnique({
+      where: { id },
+      include: {
+        questionnaire: true,
+      },
+    });
+    if (!version) throw new NotFoundException();
+    return {
+      questionnaire: version.questionnaire,
+      version: version.version,
+      structure: version.structureJson,
+    };
+  }
+
   async getVersions(id: number) {
     const questionnaire = await this.prisma.questionnaire.findUnique({
       where: { id },

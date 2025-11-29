@@ -9,6 +9,7 @@ import { QuestionnaireModule } from './questionnaire/questionnaire.module';
 import { AssessmentsModule } from './assessments/assessments.module';
 import { UsersModule } from './users/users.module';
 import { ReportsModule } from './reports/reports.module';
+import { OcrModule } from './ocr/ocr.module';
 import { RolesGuard } from './auth/guards/roles.guard';
 
 @Module({
@@ -23,6 +24,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
     AssessmentsModule,
     UsersModule,
     ReportsModule,
+    OcrModule,
   ],
   controllers: [AppController],
   providers: [
