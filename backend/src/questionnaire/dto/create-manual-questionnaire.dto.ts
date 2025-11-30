@@ -1,4 +1,14 @@
-import { IsString, IsNotEmpty, IsInt, IsNumber, Min, IsArray, ValidateNested, IsOptional, IsObject } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsInt,
+  IsNumber,
+  Min,
+  IsArray,
+  ValidateNested,
+  IsOptional,
+  IsObject,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 class QuestionDto {
@@ -75,4 +85,3 @@ export class CreateManualQuestionnaireDto {
   @IsOptional()
   rules?: any;
 }
-

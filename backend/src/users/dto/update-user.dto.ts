@@ -1,4 +1,10 @@
-import { IsString, IsEmail, IsEnum, IsOptional, MinLength } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  MinLength,
+} from 'class-validator';
 
 export class UpdateUserDto {
   @IsEmail()
@@ -14,4 +20,3 @@ export class UpdateUserDto {
   @IsOptional()
   role?: string;
 }
-

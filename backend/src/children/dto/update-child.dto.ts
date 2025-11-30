@@ -1,4 +1,11 @@
-import { IsString, IsDateString, IsInt, IsOptional, IsEnum, Min } from 'class-validator';
+import {
+  IsString,
+  IsDateString,
+  IsInt,
+  IsOptional,
+  IsEnum,
+  Min,
+} from 'class-validator';
 
 export class UpdateChildDto {
   @IsString()

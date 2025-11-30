@@ -6,20 +6,11 @@ export class RecognizeDto {
   @IsOptional()
   @Type(() => Number)
   questionnaireVersionId?: number;
-}
-
-export class ParseOcrResultDto {
-  @IsNumber()
-  ocrResultId: number;
 
   @IsNumber()
-  questionnaireVersionId: number;
-
   @IsOptional()
-  @IsArray()
-  @IsNumber({}, { each: true })
   @Type(() => Number)
-  additionalOcrResultIds?: number[];
+  childId?: number;
 }
 
 export class CreateAssessmentFromOcrDto {

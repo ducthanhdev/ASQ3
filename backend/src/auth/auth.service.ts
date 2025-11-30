@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
@@ -64,11 +68,15 @@ export class AuthService {
         secret: this.config.get('JWT_REFRESH_SECRET'),
       });
 
-    const user = await this.prisma.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: { id: payload.sub },
-    });
+      });
 
-      if (!user || user.refreshToken !== refreshToken || user.tokenVersion !== payload.version) {
+      if (
+        !user ||
+        user.refreshToken !== refreshToken ||
+        user.tokenVersion !== payload.version
+      ) {
         throw new UnauthorizedException();
       }
 
@@ -141,4 +149,3 @@ export class AuthService {
     };
   }
 }
-

@@ -1,4 +1,11 @@
-import { Controller, Get, Param, ParseIntPipe, UseGuards, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  UseGuards,
+  Res,
+} from '@nestjs/common';
 import { Response } from 'express';
 import { ReportsService } from './reports.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -14,8 +21,10 @@ export class ReportsController {
     const pdf = await this.reportsService.generatePDF(id);
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="asq3-report-${id}.pdf"`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="asq3-report-${id}.pdf"`,
+    );
     res.send(pdf);
   }
 }
-

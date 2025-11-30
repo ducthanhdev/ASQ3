@@ -1,4 +1,12 @@
-import { IsString, IsNotEmpty, IsDateString, IsInt, IsOptional, IsEnum, Min } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsDateString,
+  IsInt,
+  IsOptional,
+  IsEnum,
+  Min,
+} from 'class-validator';
 
 export class CreateChildDto {
   @IsString()

@@ -28,4 +28,3 @@ export class ImportJsonQuestionnaireDto {
   @IsObject()
   structure: any;
 }
-

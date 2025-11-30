@@ -8,4 +8,3 @@ export class CreateVersionDto {
   @IsObject()
   structure: any;
 }
-

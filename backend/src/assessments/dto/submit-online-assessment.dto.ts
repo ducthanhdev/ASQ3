@@ -1,4 +1,13 @@
-import { IsInt, IsNotEmpty, IsObject, IsOptional, IsString, IsEnum, IsEmail, ValidateIf } from 'class-validator';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsObject,
+  IsOptional,
+  IsString,
+  IsEnum,
+  IsEmail,
+  ValidateIf,
+} from 'class-validator';
 
 export class SubmitOnlineAssessmentDto {
   @IsInt()
@@ -25,8 +34,21 @@ export class SubmitOnlineAssessmentDto {
   @IsOptional()
   evaluatorLastName?: string;
 
-  @ValidateIf((o) => o.relationship !== '' && o.relationship !== null && o.relationship !== undefined)
-  @IsEnum(['PARENT', 'GUARDIAN', 'TEACHER', 'CHILDCARE_PROVIDER', 'GRANDPARENT', 'FOSTER_PARENT', 'OTHER'])
+  @ValidateIf(
+    (o) =>
+      o.relationship !== '' &&
+      o.relationship !== null &&
+      o.relationship !== undefined,
+  )
+  @IsEnum([
+    'PARENT',
+    'GUARDIAN',
+    'TEACHER',
+    'CHILDCARE_PROVIDER',
+    'GRANDPARENT',
+    'FOSTER_PARENT',
+    'OTHER',
+  ])
   @IsOptional()
   relationship?: string;
 
@@ -42,7 +64,12 @@ export class SubmitOnlineAssessmentDto {
   @IsOptional()
   evaluatorOtherPhone?: string;
 
-  @ValidateIf((o) => o.evaluatorEmail !== '' && o.evaluatorEmail !== null && o.evaluatorEmail !== undefined)
+  @ValidateIf(
+    (o) =>
+      o.evaluatorEmail !== '' &&
+      o.evaluatorEmail !== null &&
+      o.evaluatorEmail !== undefined,
+  )
   @IsEmail()
   @IsOptional()
   evaluatorEmail?: string;

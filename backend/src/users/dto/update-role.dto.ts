@@ -5,4 +5,3 @@ export class UpdateRoleDto {
   @IsNotEmpty()
   role: string;
 }
-

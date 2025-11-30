@@ -39,3 +39,7 @@ lerna-debug.log*
 .env.local
 .env.*.local
 
+# Temporary files and uploads
+/tmp
+/storage
+

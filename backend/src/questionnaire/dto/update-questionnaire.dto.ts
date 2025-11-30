@@ -19,4 +19,3 @@ export class UpdateQuestionnaireDto {
   @IsOptional()
   language?: string;
 }
-

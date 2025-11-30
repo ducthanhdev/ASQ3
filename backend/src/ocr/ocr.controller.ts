@@ -10,11 +10,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OcrService } from './ocr.service';
-import {
-  RecognizeDto,
-  ParseOcrResultDto,
-  CreateAssessmentFromOcrDto,
-} from './dto/recognize.dto';
+import { RecognizeDto, CreateAssessmentFromOcrDto } from './dto/recognize.dto';
 
 @Controller('api/ocr')
 @UseGuards(JwtAuthGuard)
@@ -30,6 +26,7 @@ export class OcrController {
     const result = await this.ocrService.recognizeFile(
       file,
       dto.questionnaireVersionId,
+      dto.childId,
     );
 
     return {
@@ -43,20 +40,6 @@ export class OcrController {
       },
       ocrResultId: result.ocrResultId,
       fileId: result.fileId,
-    };
-  }
-
-  @Post('parse')
-  async parseOcrResult(@Body() dto: ParseOcrResultDto) {
-    const answers = await this.ocrService.parseOcrToAnswers(
-      dto.ocrResultId,
-      dto.questionnaireVersionId,
-      dto.additionalOcrResultIds,
-    );
-
-    return {
-      status: 'ok',
-      answers,
     };
   }
 

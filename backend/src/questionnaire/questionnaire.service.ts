@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateQuestionnaireDto } from './dto/create-questionnaire.dto';
 import { UpdateQuestionnaireDto } from './dto/update-questionnaire.dto';
@@ -50,11 +54,10 @@ export class QuestionnaireService {
   async getVersionById(id: number) {
     const version = await this.prisma.questionnaireVersion.findUnique({
       where: { id },
-      include: {
-        questionnaire: true,
-      },
+      include: { questionnaire: true },
     });
     if (!version) throw new NotFoundException();
+
     return {
       questionnaire: version.questionnaire,
       version: version.version,
@@ -79,35 +82,11 @@ export class QuestionnaireService {
   }
 
   async createManual(dto: CreateManualQuestionnaireDto) {
-    if (dto.domains.length !== 5) {
-      throw new BadRequestException('Must have exactly 5 domains');
-    }
-
-    for (const domain of dto.domains) {
-      if (domain.questions.length !== 6) {
-        throw new BadRequestException(`Domain ${domain.title} must have exactly 6 questions`);
-      }
-    }
+    this.validateDomainsCount(dto.domains);
 
     const structure = this.buildStructureFromManual(dto);
-
-    const questionnaire = await this.prisma.questionnaire.create({
-      data: {
-        code: dto.code,
-        title: dto.title,
-        minMonth: dto.minMonth,
-        maxMonth: dto.maxMonth,
-        language: dto.language,
-      },
-    });
-
-    const version = await this.prisma.questionnaireVersion.create({
-      data: {
-        questionnaireId: questionnaire.id,
-        version: dto.version,
-        structureJson: structure,
-      },
-    });
+    const questionnaire = await this.createQuestionnaire(dto);
+    const version = await this.createVersionRecord(questionnaire.id, dto.version, structure);
 
     return { questionnaire, version };
   }
@@ -115,23 +94,8 @@ export class QuestionnaireService {
   async importJson(dto: ImportJsonQuestionnaireDto) {
     this.validateStructure(dto.structure);
 
-    const questionnaire = await this.prisma.questionnaire.create({
-      data: {
-        code: dto.code,
-        title: dto.title,
-        minMonth: dto.minMonth,
-        maxMonth: dto.maxMonth,
-        language: dto.language,
-      },
-    });
-
-    const version = await this.prisma.questionnaireVersion.create({
-      data: {
-        questionnaireId: questionnaire.id,
-        version: dto.version,
-        structureJson: dto.structure,
-      },
-    });
+    const questionnaire = await this.createQuestionnaire(dto);
+    const version = await this.createVersionRecord(questionnaire.id, dto.version, dto.structure);
 
     return { questionnaire, version };
   }
@@ -144,15 +108,13 @@ export class QuestionnaireService {
 
     this.validateStructure(dto.structure);
 
-    const version = await this.prisma.questionnaireVersion.create({
+    return this.prisma.questionnaireVersion.create({
       data: {
         questionnaireId: id,
         version: dto.version,
         structureJson: dto.structure,
       },
     });
-
-    return version;
   }
 
   update(id: number, dto: UpdateQuestionnaireDto) {
@@ -171,12 +133,12 @@ export class QuestionnaireService {
       },
     });
 
-    const hasAssessments = versions.some(v => v.assessments.length > 0);
-    const hasOcrResults = versions.some(v => v.ocrResults.length > 0);
+    const hasAssessments = versions.some((v) => v.assessments.length > 0);
+    const hasOcrResults = versions.some((v) => v.ocrResults.length > 0);
 
     if (hasAssessments || hasOcrResults) {
       throw new BadRequestException(
-        'Cannot delete questionnaire that has been used in assessments or OCR results'
+        'Cannot delete questionnaire that has been used in assessments or OCR results',
       );
     }
 
@@ -234,8 +196,34 @@ export class QuestionnaireService {
     };
   }
 
+  private async createQuestionnaire(dto: any) {
+    return this.prisma.questionnaire.create({
+      data: {
+        code: dto.code,
+        title: dto.title,
+        minMonth: dto.minMonth,
+        maxMonth: dto.maxMonth,
+        language: dto.language,
+      },
+    });
+  }
+
+  private async createVersionRecord(
+    questionnaireId: number,
+    version: string,
+    structure: any,
+  ) {
+    return this.prisma.questionnaireVersion.create({
+      data: {
+        questionnaireId,
+        version,
+        structureJson: structure,
+      },
+    });
+  }
+
   private buildStructureFromManual(dto: CreateManualQuestionnaireDto) {
-    const domains = dto.domains.map((domain, domainIdx) => {
+    const domains = dto.domains.map((domain) => {
       const domainKey = domain.key.toLowerCase().replace(/\s+/g, '_');
       return {
         key: domainKey,
@@ -275,6 +263,20 @@ export class QuestionnaireService {
     };
   }
 
+  private validateDomainsCount(domains: any[]) {
+    if (domains.length !== 5) {
+      throw new BadRequestException('Must have exactly 5 domains');
+    }
+
+    for (const domain of domains) {
+      if (domain.questions.length !== 6) {
+        throw new BadRequestException(
+          `Domain ${domain.title} must have exactly 6 questions`,
+        );
+      }
+    }
+  }
+
   private validateStructure(structure: any) {
     if (!structure.domains || !Array.isArray(structure.domains)) {
       throw new BadRequestException('Structure must have domains array');
@@ -284,49 +286,67 @@ export class QuestionnaireService {
       throw new BadRequestException('Must have exactly 5 domains');
     }
 
+    const questionIds = new Set<string>();
+
     for (const domain of structure.domains) {
-      if (!domain.key || !domain.title || domain.cutoff_score === undefined) {
-        throw new BadRequestException(`Domain missing required fields: key, title, cutoff_score`);
-      }
-
-      if (!domain.questions || !Array.isArray(domain.questions)) {
-        throw new BadRequestException(`Domain ${domain.title} must have questions array`);
-      }
-
-      if (domain.questions.length !== 6) {
-        throw new BadRequestException(`Domain ${domain.title} must have exactly 6 questions`);
-      }
-
-      for (const q of domain.questions) {
-        if (!q.id || !q.text || q.sort_order === undefined) {
-          throw new BadRequestException(`Question missing required fields: id, text, sort_order`);
-        }
-      }
+      this.validateDomain(domain);
+      this.validateDomainQuestions(domain, questionIds);
     }
 
-    if (!structure.rules || !structure.rules.score_values) {
+    this.validateRules(structure.rules);
+  }
+
+  private validateDomain(domain: any) {
+    if (!domain.key || !domain.title || domain.cutoff_score === undefined) {
+      throw new BadRequestException(
+        'Domain missing required fields: key, title, cutoff_score',
+      );
+    }
+
+    if (!domain.questions || !Array.isArray(domain.questions)) {
+      throw new BadRequestException(
+        `Domain ${domain.title} must have questions array`,
+      );
+    }
+
+    if (domain.questions.length !== 6) {
+      throw new BadRequestException(
+        `Domain ${domain.title} must have exactly 6 questions`,
+      );
+    }
+  }
+
+  private validateDomainQuestions(domain: any, questionIds: Set<string>) {
+    for (const q of domain.questions) {
+      if (!q.id || !q.text || q.sort_order === undefined) {
+        throw new BadRequestException(
+          'Question missing required fields: id, text, sort_order',
+        );
+      }
+
+      if (questionIds.has(q.id)) {
+        throw new BadRequestException(`Duplicate question ID: ${q.id}`);
+      }
+      questionIds.add(q.id);
+    }
+  }
+
+  private validateRules(rules: any) {
+    if (!rules || !rules.score_values) {
       throw new BadRequestException('Structure must have rules.score_values');
     }
 
-    const scoreValues = structure.rules.score_values;
-    if (scoreValues.Y === undefined || scoreValues.S === undefined || scoreValues.N === undefined) {
+    const scoreValues = rules.score_values;
+    if (
+      scoreValues.Y === undefined ||
+      scoreValues.S === undefined ||
+      scoreValues.N === undefined
+    ) {
       throw new BadRequestException('score_values must have Y, S, N keys');
     }
 
-    if (typeof structure.rules.monitor_margin !== 'number') {
+    if (typeof rules.monitor_margin !== 'number') {
       throw new BadRequestException('monitor_margin must be a number');
-    }
-
-    const questionIds = new Set();
-    for (const domain of structure.domains) {
-      for (const q of domain.questions) {
-        if (questionIds.has(q.id)) {
-          throw new BadRequestException(`Duplicate question ID: ${q.id}`);
-        }
-        questionIds.add(q.id);
-      }
     }
   }
 }
-
-

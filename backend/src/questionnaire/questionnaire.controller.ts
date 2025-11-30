@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe, UseGuards, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  ParseIntPipe,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
 import { QuestionnaireService } from './questionnaire.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -66,13 +77,19 @@ export class QuestionnaireController {
 
   @Post(':id/version')
   @Roles('ADMIN')
-  createVersion(@Param('id', ParseIntPipe) id: number, @Body() dto: CreateVersionDto) {
+  createVersion(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: CreateVersionDto,
+  ) {
     return this.questionnaireService.createVersion(id, dto);
   }
 
   @Put(':id')
   @Roles('ADMIN')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateQuestionnaireDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateQuestionnaireDto,
+  ) {
     return this.questionnaireService.update(id, dto);
   }
 
@@ -82,4 +99,3 @@ export class QuestionnaireController {
     return this.questionnaireService.remove(id);
   }
 }
-

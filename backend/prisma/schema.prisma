@@ -45,11 +45,11 @@ model User {
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
 
-  children        Child[]
-  assessments     Assessment[] @relation("evaluator")
+  children            Child[]
+  assessments         Assessment[] @relation("evaluator")
   reviewedAssessments Assessment[] @relation("reviewer")
-  followUps       FollowUp[]   @relation("assigned_to_user")
-  uploads         File[]       @relation("uploader")
+  followUps           FollowUp[]   @relation("assigned_to_user")
+  uploads             File[]       @relation("uploader")
 }
 
 /**
@@ -72,6 +72,7 @@ model Child {
   createdAt          DateTime     @default(now())
   parent             User?        @relation(fields: [parentId], references: [id])
   assessments        Assessment[]
+  files              File[]
 }
 
 /**
@@ -109,19 +110,19 @@ model QuestionnaireVersion {
  * 5. ASSESSMENTS
  */
 model Assessment {
-  id                     Int      @id @default(autoincrement())
+  id                     Int       @id @default(autoincrement())
   childId                Int
   questionnaireVersionId Int
   evaluatorId            Int?
   assessmentDate         DateTime
-  completionDate         DateTime @default(now())
+  completionDate         DateTime  @default(now())
   answersJson            Json?
   scoresJson             Json?
   summaryResultJson      Json?
-  finalConclusion        String   @default("PENDING_REVIEW")
-  method                 String   @default("ONLINE")
-  scanFileId             Int?     @unique
-  status                 String   @default("PENDING_REVIEW")
+  finalConclusion        String    @default("PENDING_REVIEW")
+  method                 String    @default("ONLINE")
+  scanFileId             Int?      @unique
+  status                 String    @default("PENDING_REVIEW")
   reviewedById           Int?
   reviewedAt             DateTime?
 
@@ -155,13 +156,16 @@ model Assessment {
 model File {
   id           Int      @id @default(autoincrement())
   uploaderId   Int?
+  childId      Int?
   originalName String
-  storagePath  String
+  storagePath  String? // Keep for backward compatibility, can be removed later
+  fileData     Bytes?   @db.LongBlob // File content stored as binary
   mimeType     String?
   sizeBytes    Int?
   createdAt    DateTime @default(now())
 
-  uploader User? @relation("uploader", fields: [uploaderId], references: [id])
+  uploader User?  @relation("uploader", fields: [uploaderId], references: [id])
+  child    Child? @relation(fields: [childId], references: [id])
 
   ocrResults OcrResult[]
 

@@ -48,6 +48,34 @@ interface AutoSelectData {
   };
 }
 
+const inputBaseClasses = "w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white";
+
+function QuestionRadioGroup({
+  value,
+  onChange,
+  options,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <RadioGroup.Root value={value || ""} onValueChange={onChange} className="flex gap-6">
+      {options.map((option) => (
+        <label key={option.value} className="flex items-center gap-2 cursor-pointer group">
+          <RadioGroup.Item
+            value={option.value}
+            className="w-5 h-5 rounded-full border-2 border-gray-300 bg-white group-hover:border-blue-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 transition-colors"
+          >
+            <RadioGroup.Indicator className="flex items-center justify-center w-full h-full relative after:content-[''] after:block after:w-2 after:h-2 after:rounded-full after:bg-white" />
+          </RadioGroup.Item>
+          <span className="text-gray-700 group-hover:text-blue-600 transition-colors">{option.label}</span>
+        </label>
+      ))}
+    </RadioGroup.Root>
+  );
+}
+
 export default function AssessmentForm() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
@@ -176,20 +204,13 @@ export default function AssessmentForm() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-            className="mb-4 text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-          <h1 className="text-4xl font-extrabold text-gray-900 mb-2">ASQ-3 Assessment</h1>
-          <p className="text-gray-600">
-            {data.questionnaire.title} - {data.questionnaire.code}
-          </p>
-        </div>
+        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4 text-gray-600 hover:text-gray-900">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </Button>
+
+        <h1 className="text-4xl font-extrabold text-gray-900 mb-2">ASQ-3 Assessment</h1>
+        <p className="text-gray-600">{data.questionnaire.title} - {data.questionnaire.code}</p>
 
         <Card className="mb-6">
           <CardHeader>
@@ -199,11 +220,11 @@ export default function AssessmentForm() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-600">Child Name</p>
-                <p className="font-semibold text-lg">{data.child.fullName}</p>
+                <p className="font-semibold text-lg text-gray-900">{data.child.fullName}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Age (Adjusted)</p>
-                <p className="font-semibold text-lg">{data.child.ageMonths} months</p>
+                <p className="font-semibold text-lg text-gray-900">{data.child.ageMonths} months</p>
               </div>
             </div>
           </CardContent>
@@ -224,7 +245,7 @@ export default function AssessmentForm() {
                   type="text"
                   value={evaluatorInfo.lastName}
                   onChange={(e) => setEvaluatorInfo({ ...evaluatorInfo, lastName: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={inputBaseClasses}
                 />
               </div>
               <div>
@@ -235,7 +256,7 @@ export default function AssessmentForm() {
                   type="text"
                   value={evaluatorInfo.middleName}
                   onChange={(e) => setEvaluatorInfo({ ...evaluatorInfo, middleName: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={inputBaseClasses}
                 />
               </div>
               <div>
@@ -246,7 +267,7 @@ export default function AssessmentForm() {
                   type="text"
                   value={evaluatorInfo.firstName}
                   onChange={(e) => setEvaluatorInfo({ ...evaluatorInfo, firstName: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={inputBaseClasses}
                 />
               </div>
             </div>
@@ -258,7 +279,7 @@ export default function AssessmentForm() {
               <select
                 value={evaluatorInfo.relationship}
                 onChange={(e) => setEvaluatorInfo({ ...evaluatorInfo, relationship: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={inputBaseClasses}
               >
                 <option value="">Chọn quan hệ</option>
                 <option value="PARENT">Bố/mẹ</option>
@@ -279,7 +300,7 @@ export default function AssessmentForm() {
                 rows={2}
                 value={evaluatorInfo.address}
                 onChange={(e) => setEvaluatorInfo({ ...evaluatorInfo, address: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={inputBaseClasses}
               />
             </div>
 
@@ -292,7 +313,7 @@ export default function AssessmentForm() {
                   type="tel"
                   value={evaluatorInfo.homePhone}
                   onChange={(e) => setEvaluatorInfo({ ...evaluatorInfo, homePhone: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={inputBaseClasses}
                 />
               </div>
               <div>
@@ -303,7 +324,7 @@ export default function AssessmentForm() {
                   type="tel"
                   value={evaluatorInfo.otherPhone}
                   onChange={(e) => setEvaluatorInfo({ ...evaluatorInfo, otherPhone: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={inputBaseClasses}
                 />
               </div>
             </div>
@@ -316,7 +337,7 @@ export default function AssessmentForm() {
                 type="email"
                 value={evaluatorInfo.email}
                 onChange={(e) => setEvaluatorInfo({ ...evaluatorInfo, email: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={inputBaseClasses}
               />
             </div>
 
@@ -328,7 +349,7 @@ export default function AssessmentForm() {
                 type="text"
                 value={evaluatorInfo.helperName}
                 onChange={(e) => setEvaluatorInfo({ ...evaluatorInfo, helperName: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={inputBaseClasses}
               />
             </div>
 
@@ -341,7 +362,7 @@ export default function AssessmentForm() {
                   type="text"
                   value={evaluatorInfo.programRegistrationNumber}
                   onChange={(e) => setEvaluatorInfo({ ...evaluatorInfo, programRegistrationNumber: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={inputBaseClasses}
                 />
               </div>
               <div>
@@ -352,7 +373,7 @@ export default function AssessmentForm() {
                   type="text"
                   value={evaluatorInfo.programName}
                   onChange={(e) => setEvaluatorInfo({ ...evaluatorInfo, programName: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={inputBaseClasses}
                 />
               </div>
             </div>
@@ -363,9 +384,7 @@ export default function AssessmentForm() {
           {structure.domains.map((domain) => (
             <Card key={domain.key}>
               <CardHeader>
-                <CardTitle className="text-xl">
-                  {domainTitles[domain.key] || domain.title}
-                </CardTitle>
+                <CardTitle className="text-xl">{domainTitles[domain.key] || domain.title}</CardTitle>
                 <p className="text-sm text-gray-500">Cutoff Score: {domain.cutoff_score}</p>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -376,47 +395,15 @@ export default function AssessmentForm() {
                       {q.sort_order}. {q.text}
                     </p>
                     <p className="text-xs text-red-600 mb-4 font-medium">Bắt buộc phải trả lời</p>
-                    <RadioGroup.Root
+                    <QuestionRadioGroup
                       value={answers[q.id] || ""}
-                      onValueChange={(value) =>
-                        setAnswers((prev) => ({ ...prev, [q.id]: value }))
-                      }
-                      className="flex gap-6"
-                    >
-                      <label className="flex items-center gap-2 cursor-pointer group">
-                        <RadioGroup.Item
-                          value="Y"
-                          className="w-5 h-5 rounded-full border-2 border-gray-300 bg-white group-hover:border-blue-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 transition-colors"
-                        >
-                          <RadioGroup.Indicator className="flex items-center justify-center w-full h-full relative after:content-[''] after:block after:w-2 after:h-2 after:rounded-full after:bg-white" />
-                        </RadioGroup.Item>
-                        <span className="text-gray-700 group-hover:text-blue-600 transition-colors">
-                          Có (Yes)
-                        </span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer group">
-                        <RadioGroup.Item
-                          value="S"
-                          className="w-5 h-5 rounded-full border-2 border-gray-300 bg-white group-hover:border-blue-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 transition-colors"
-                        >
-                          <RadioGroup.Indicator className="flex items-center justify-center w-full h-full relative after:content-[''] after:block after:w-2 after:h-2 after:rounded-full after:bg-white" />
-                        </RadioGroup.Item>
-                        <span className="text-gray-700 group-hover:text-blue-600 transition-colors">
-                          Đôi khi (Sometimes)
-                        </span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer group">
-                        <RadioGroup.Item
-                          value="N"
-                          className="w-5 h-5 rounded-full border-2 border-gray-300 bg-white group-hover:border-blue-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 transition-colors"
-                        >
-                          <RadioGroup.Indicator className="flex items-center justify-center w-full h-full relative after:content-[''] after:block after:w-2 after:h-2 after:rounded-full after:bg-white" />
-                        </RadioGroup.Item>
-                        <span className="text-gray-700 group-hover:text-blue-600 transition-colors">
-                          Chưa (Not yet)
-                        </span>
-                      </label>
-                    </RadioGroup.Root>
+                      onChange={(value) => setAnswers((prev) => ({ ...prev, [q.id]: value }))}
+                      options={[
+                        { value: "Y", label: "Có (Yes)" },
+                        { value: "S", label: "Đôi khi (Sometimes)" },
+                        { value: "N", label: "Chưa (Not yet)" },
+                      ]}
+                    />
                   </div>
                 ))}
               </CardContent>
@@ -431,43 +418,35 @@ export default function AssessmentForm() {
               <p className="text-sm text-gray-500 mt-2">Các câu hỏi tổng quát (Tùy chọn)</p>
             </CardHeader>
             <CardContent className="space-y-6">
-              {structure.overall_section.map((q) => (
-                <div key={q.id} className="border-b border-gray-100 pb-6 last:border-0 last:pb-0">
-                  <p className="font-medium mb-4 text-gray-900">
-                    {q.text} <span className="text-gray-400 font-normal text-xs ml-2">(Tùy chọn)</span>
-                  </p>
-                  <RadioGroup.Root
-                    value={answers[q.id] || ""}
-                    onValueChange={(value) =>
-                      setAnswers((prev) => ({ ...prev, [q.id]: value }))
-                    }
-                    className="flex gap-6"
-                  >
-                    <label className="flex items-center gap-2 cursor-pointer group">
-                      <RadioGroup.Item
-                        value="Y"
-                        className="w-5 h-5 rounded-full border-2 border-gray-300 bg-white group-hover:border-blue-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 transition-colors"
-                      >
-                        <RadioGroup.Indicator className="flex items-center justify-center w-full h-full relative after:content-[''] after:block after:w-2 after:h-2 after:rounded-full after:bg-white" />
-                      </RadioGroup.Item>
-                      <span className="text-gray-700 group-hover:text-blue-600 transition-colors">
-                        Yes
-                      </span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer group">
-                      <RadioGroup.Item
-                        value="N"
-                        className="w-5 h-5 rounded-full border-2 border-gray-300 bg-white group-hover:border-blue-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 transition-colors"
-                      >
-                        <RadioGroup.Indicator className="flex items-center justify-center w-full h-full relative after:content-[''] after:block after:w-2 after:h-2 after:rounded-full after:bg-white" />
-                      </RadioGroup.Item>
-                      <span className="text-gray-700 group-hover:text-blue-600 transition-colors">
-                        No
-                      </span>
-                    </label>
-                  </RadioGroup.Root>
-                </div>
-              ))}
+              {structure.overall_section.map((q) => {
+                const explanationKey = `${q.id}_explanation`;
+                return (
+                  <div key={q.id} className="border-b border-gray-100 pb-6 last:border-0 last:pb-0">
+                    <p className="font-medium mb-4 text-gray-900">
+                      {q.text} <span className="text-gray-400 font-normal text-xs ml-2">(Tùy chọn)</span>
+                    </p>
+                    <div className="mb-4">
+                      <QuestionRadioGroup
+                        value={answers[q.id] || ""}
+                        onChange={(value) => setAnswers((prev) => ({ ...prev, [q.id]: value }))}
+                        options={[
+                          { value: "Y", label: "Yes" },
+                          { value: "N", label: "No" },
+                        ]}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-700 mb-1">Giải thích (nếu có):</label>
+                      <textarea
+                        value={answers[explanationKey] || ""}
+                        onChange={(e) => setAnswers((prev) => ({ ...prev, [explanationKey]: e.target.value }))}
+                        className="w-full border border-gray-300 rounded p-2 text-sm bg-white min-h-[60px] resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder=""
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </CardContent>
           </Card>
         )}

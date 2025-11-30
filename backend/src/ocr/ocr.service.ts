@@ -1,18 +1,14 @@
 import {
   Injectable,
-  HttpException,
-  HttpStatus,
   Logger,
   NotFoundException,
   BadGatewayException,
+  BadRequestException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
-import * as fs from 'fs';
-import * as path from 'path';
 import fetch from 'node-fetch';
-
-const FormData = require('form-data');
+import FormData from 'form-data';
 
 export interface OcrTextItem {
   text: string;
@@ -26,7 +22,7 @@ export interface OcrPage {
   height: number;
   texts: OcrTextItem[];
   question_numbers?: number[];
-  image?: string | number[];
+  image?: string;
 }
 
 export interface OcrResponse {
@@ -35,8 +31,6 @@ export interface OcrResponse {
   full_text: string;
   confidence: number;
   total_frames: number;
-  file_data?: string;
-  file_name?: string;
 }
 
 export interface OcrResponseWithIds extends OcrResponse {
@@ -44,43 +38,57 @@ export interface OcrResponseWithIds extends OcrResponse {
   fileId: number;
 }
 
+interface ParseResponse {
+  answers: Record<string, string>;
+}
+
+interface QuestionnaireStructure {
+  domains?: Array<{
+    key: string;
+    cutoff_score: number;
+    questions: Array<{ id: string }>;
+  }>;
+  overall_section?: Array<{ id: string }>;
+  rules?: {
+    score_values?: Record<string, number>;
+    monitor_margin?: number;
+  };
+}
+
 @Injectable()
 export class OcrService {
   private readonly logger = new Logger(OcrService.name);
   private readonly ocrServiceUrl: string;
-  private readonly tmpDir: string;
+  private readonly requestTimeout = 600000;
 
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
   ) {
     this.ocrServiceUrl =
-      this.configService.get<string>('OCR_SERVICE_URL') ||
-      'http://localhost:8000';
-    this.tmpDir = path.join(process.cwd(), 'tmp');
+      this.configService.get<string>('OCR_SERVICE_URL') || 'http://localhost:8000';
   }
 
   async recognizeFile(
     file: Express.Multer.File,
     questionnaireVersionId?: number,
+    childId?: number,
   ): Promise<OcrResponseWithIds> {
     if (!file) {
-      throw new HttpException('No file provided', HttpStatus.BAD_REQUEST);
+      throw new BadRequestException('No file provided');
     }
 
-    if (!fs.existsSync(this.tmpDir)) {
-      fs.mkdirSync(this.tmpDir, { recursive: true });
+    if (childId) {
+      const child = await this.prisma.child.findUnique({ where: { id: childId } });
+      if (!child) {
+        throw new NotFoundException(`Child with ID ${childId} not found`);
+      }
     }
 
-    const tmpPath = path.join(
-      this.tmpDir,
-      `${Date.now()}_${file.originalname}`,
-    );
+    const savedFile = await this.saveFileToDb(file, childId);
 
     try {
-      fs.writeFileSync(tmpPath, file.buffer);
-      const ocrResult = await this.callOcrService(tmpPath, file);
-      const savedFile = await this.saveFile(file, tmpPath);
+      const ocrResult = await this.callOcrRecognize(file);
       const ocrResultRecord = await this.saveOcrResult(
         savedFile.id,
         questionnaireVersionId,
@@ -93,102 +101,9 @@ export class OcrService {
         fileId: savedFile.id,
       };
     } catch (error) {
-      this.logger.error(`OCR processing failed: ${error.message}`, error.stack);
-      if (fs.existsSync(tmpPath)) {
-        fs.unlinkSync(tmpPath);
-      }
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new HttpException(
-        `OCR processing failed: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      await this.prisma.file.delete({ where: { id: savedFile.id } }).catch(() => {});
+      throw error;
     }
-  }
-
-  async parseOcrToAnswers(
-    ocrResultId: number,
-    questionnaireVersionId: number,
-    additionalOcrResultIds?: number[],
-  ): Promise<Record<string, string>> {
-    const ocrResultIds = [ocrResultId, ...(additionalOcrResultIds || [])];
-
-    const ocrResults = await Promise.all(
-      ocrResultIds.map((id) =>
-        this.prisma.ocrResult.findUnique({ where: { id } }),
-      ),
-    );
-
-    const validOcrResults = ocrResults.filter((r) => r !== null);
-    if (validOcrResults.length === 0) {
-      throw new NotFoundException('No valid OCR results found');
-    }
-
-    const version = await this.prisma.questionnaireVersion.findUnique({
-      where: { id: questionnaireVersionId },
-    });
-
-    if (!version) {
-      throw new NotFoundException('Questionnaire version not found');
-    }
-
-    const structure = version.structureJson as any;
-    const questionIds = this.extractQuestionIds(structure);
-
-    const allPages: OcrPage[] = [];
-    let combinedFullText = '';
-    let mainFileId: number | undefined;
-
-    for (const ocrResult of validOcrResults) {
-      if (ocrResult.bboxJson) {
-        const pages = ocrResult.bboxJson as any as OcrPage[];
-        allPages.push(...pages);
-      }
-      if (ocrResult.rawText) {
-        combinedFullText += ocrResult.rawText + '\n';
-      }
-      if (!mainFileId && ocrResult.fileId) {
-        mainFileId = ocrResult.fileId;
-      }
-    }
-
-    let answers: Record<string, string>;
-    
-    try {
-      if (mainFileId) {
-        const file = await this.prisma.file.findUnique({ where: { id: mainFileId } });
-        if (file && fs.existsSync(file.storagePath)) {
-          this.logger.debug(`Reading file_data from file storage, mainFileId: ${mainFileId}, path: ${file.storagePath}`);
-          answers = await this.callParseService(allPages, questionIds, mainFileId);
-        } else {
-          this.logger.warn(`File not found in storage: fileId=${mainFileId}, path=${file?.storagePath}. File may have been deleted.`);
-          throw new Error('File not found in storage');
-        }
-      } else {
-        this.logger.warn(`No fileId found in OCR results. mainFileId=${mainFileId}. YOLO parser may not work.`);
-        answers = await this.callParseService(allPages, questionIds, undefined);
-      }
-      this.logger.log(`Successfully parsed ${Object.keys(answers).length} answers using YOLO parser`);
-    } catch (error) {
-      this.logger.warn(`YOLO parser failed: ${error.message}, falling back to OCR parser`);
-      answers = this.parseAnswersFromText(
-        combinedFullText,
-        questionIds,
-        allPages,
-        structure,
-      );
-    }
-
-    await this.prisma.ocrResult.update({
-      where: { id: ocrResultId },
-      data: {
-        parsedAnswersJson: answers,
-        questionnaireVersionId,
-      },
-    });
-
-    return answers;
   }
 
   async createAssessmentFromOcr(
@@ -197,11 +112,6 @@ export class OcrService {
     questionnaireVersionId: number,
     userId: number,
   ) {
-    const answers = await this.parseOcrToAnswers(
-      ocrResultId,
-      questionnaireVersionId,
-    );
-
     const ocrResult = await this.prisma.ocrResult.findUnique({
       where: { id: ocrResultId },
       include: { file: true },
@@ -220,12 +130,9 @@ export class OcrService {
       throw new NotFoundException('Questionnaire version not found');
     }
 
-    const structure = version.structureJson as any;
-    const domainTotals = this.calculateDomainScores(structure, answers);
-    const { domainScores, finalConclusion } = this.classifyResults(
-      structure,
-      domainTotals,
-    );
+    const structure = version.structureJson as QuestionnaireStructure;
+    const answers = await this.getOrParseAnswers(ocrResult, structure, questionnaireVersionId);
+    const { domainScores, finalConclusion } = this.calculateScores(structure, answers);
 
     const assessment = await this.prisma.assessment.create({
       data: {
@@ -252,64 +159,93 @@ export class OcrService {
     return { assessment, domainScores, finalConclusion };
   }
 
-  private async callParseServiceWithFileData(
-    pages: OcrPage[],
-    questionIds: string[],
-    fileData: string,
-    fileName?: string,
+  private async getOrParseAnswers(
+    ocrResult: any,
+    structure: QuestionnaireStructure,
+    questionnaireVersionId: number,
   ): Promise<Record<string, string>> {
-    this.logger.debug(`Calling parse service with ${pages.length} pages, ${questionIds.length} questions, file_data: ${fileData.length} chars`);
-    
-    const requestBody: any = {
-      pages,
-      question_ids: questionIds,
-      file_data: fileData,
-      file_name: fileName,
-    };
-    
-    return this.sendParseRequest(requestBody);
-  }
+    const parsedAnswers = ocrResult.parsedAnswersJson as Record<string, string> | null;
 
-  private async callParseService(
-    pages: OcrPage[],
-    questionIds: string[],
-    fileId?: number,
-  ): Promise<Record<string, string>> {
-    this.logger.debug(`Calling parse service with ${pages.length} pages, ${questionIds.length} questions`);
-    
-    const requestBody: any = {
-      pages,
-      question_ids: questionIds,
-    };
-
-    if (fileId) {
-      const file = await this.prisma.file.findUnique({ where: { id: fileId } });
-      if (file) {
-        if (fs.existsSync(file.storagePath)) {
-          const fileData = fs.readFileSync(file.storagePath);
-          requestBody.file_data = fileData.toString('base64');
-          requestBody.file_name = file.originalName;
-          this.logger.debug(`Including file_data: ${file.originalName}, ${fileData.length} bytes (base64: ${requestBody.file_data.length} chars)`);
-        } else {
-          this.logger.warn(`File path doesn't exist: fileId=${fileId}, path=${file.storagePath}. Trying to use file_data from OCR result...`);
-        }
-      } else {
-        this.logger.warn(`File not found in DB: fileId=${fileId}`);
-      }
-    } else {
-      this.logger.warn('No fileId provided to callParseService');
+    if (parsedAnswers && Object.keys(parsedAnswers).length > 0) {
+      return parsedAnswers;
     }
-    
-    return this.sendParseRequest(requestBody);
+
+    try {
+      const questionIds = this.extractQuestionIds(structure);
+      const relatedIds = await this.findRelatedOcrResultIds(
+        ocrResult.id,
+        questionnaireVersionId,
+      );
+      const allIds = [ocrResult.id, ...relatedIds];
+
+      const answers = await this.parseOcrResults(allIds, questionIds);
+
+      await this.prisma.ocrResult.update({
+        where: { id: ocrResult.id },
+        data: { parsedAnswersJson: answers, questionnaireVersionId },
+      });
+
+      return answers;
+    } catch (error) {
+      this.logger.warn(`Auto-parse failed: ${error.message}`);
+      return {};
+    }
   }
 
-  private async sendParseRequest(requestBody: any): Promise<Record<string, string>> {
-    
+  private async findRelatedOcrResultIds(
+    ocrResultId: number,
+    questionnaireVersionId: number,
+  ): Promise<number[]> {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const results = await this.prisma.ocrResult.findMany({
+      where: {
+        questionnaireVersionId,
+        id: { not: ocrResultId },
+        createdAt: { gte: oneHourAgo },
+      },
+      orderBy: { createdAt: 'asc' },
+      take: 10,
+      select: { id: true },
+    });
+
+    return results.map((r) => r.id);
+  }
+
+  private async parseOcrResults(
+    ocrResultIds: number[],
+    questionIds: string[],
+  ): Promise<Record<string, string>> {
+    const ocrResults = await Promise.all(
+      ocrResultIds.map((id) =>
+        this.prisma.ocrResult.findUnique({
+          where: { id },
+          include: { file: true },
+        }),
+      ),
+    );
+
+    const validResults = ocrResults.filter((r) => r !== null);
+    if (validResults.length === 0) {
+      throw new NotFoundException('No valid OCR results found');
+    }
+
+    const files = await Promise.all(
+      validResults.map((r) =>
+        r.fileId
+          ? this.prisma.file.findUnique({
+              where: { id: r.fileId },
+              select: { id: true, originalName: true, fileData: true },
+            })
+          : null,
+      ),
+    );
+
+    const pages = this.collectPages(validResults, files);
+    const requestBody = this.buildParseRequest(pages, questionIds, files);
+
     const response = await fetch(`${this.ocrServiceUrl}/parse`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(requestBody),
     });
 
@@ -319,109 +255,85 @@ export class OcrService {
       throw new BadGatewayException(`Parse service error: ${errorText}`);
     }
 
-    const result = (await response.json()) as { answers: Record<string, string> };
-    const answerCount = Object.keys(result.answers || {}).length;
-    this.logger.debug(`Parse service returned ${answerCount} answers`);
-    
+    const result = (await response.json()) as ParseResponse;
     return result.answers || {};
   }
 
-  private async callOcrService(
-    tmpPath: string,
-    file: Express.Multer.File,
-  ): Promise<OcrResponse> {
-    const form = new FormData();
-    form.append('file', fs.createReadStream(tmpPath), {
-      filename: file.originalname,
-      contentType: file.mimetype,
-    });
+  private collectPages(ocrResults: any[], files: any[]): any[] {
+    const allPages: any[] = [];
+    let pageIndexOffset = 0;
 
-    const response = await fetch(`${this.ocrServiceUrl}/recognize`, {
-      method: 'POST',
-      headers: form.getHeaders(),
-      body: form,
-      timeout: 300000, 
-    } as any);
+    for (let i = 0; i < ocrResults.length; i++) {
+      const ocrResult = ocrResults[i];
+      const file = files[i];
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      this.logger.error(`OCR service error (${response.status}): ${errorText}`);
-      let errorMessage = `OCR service error: ${errorText}`;
-      try {
-        const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.detail || errorJson.message || errorText;
-      } catch {
-      }
-      throw new BadGatewayException(errorMessage);
+      if (!ocrResult.bboxJson) continue;
+
+      const pages = ocrResult.bboxJson as unknown as OcrPage[];
+      const fileImageBase64 = file?.fileData
+        ? Buffer.from(file.fileData as Buffer).toString('base64')
+        : null;
+
+      const mappedPages = pages.map((page, pageIdx) => ({
+        frame_index: page.frame_index + pageIndexOffset,
+        width: page.width,
+        height: page.height,
+        texts: page.texts,
+        question_numbers: page.question_numbers || [],
+        ...(pageIdx === 0 && fileImageBase64 && { image: fileImageBase64 }),
+      }));
+
+      allPages.push(...mappedPages);
+      pageIndexOffset += pages.length;
     }
 
-    return (await response.json()) as OcrResponse;
+    return allPages;
   }
 
-  private async saveFile(file: Express.Multer.File, tmpPath: string) {
-    return this.prisma.file.create({
-      data: {
-        originalName: file.originalname,
-        storagePath: tmpPath,
-        mimeType: file.mimetype,
-        sizeBytes: file.size,
-      },
-    });
+  private buildParseRequest(
+    pages: any[],
+    questionIds: string[],
+    files: any[],
+  ): any {
+    const requestBody: any = {
+      pages,
+      question_ids: questionIds,
+    };
+
+    if (files.length === 1 && files[0]?.fileData) {
+      requestBody.file_data = Buffer.from(files[0].fileData as Buffer).toString('base64');
+      requestBody.file_name = files[0].originalName;
+    }
+
+    return requestBody;
   }
 
-  private async saveOcrResult(
-    fileId: number,
-    questionnaireVersionId: number | undefined,
-    result: OcrResponse,
-  ) {
-    return this.prisma.ocrResult.create({
-      data: {
-        fileId,
-        questionnaireVersionId: questionnaireVersionId || null,
-        rawText: result.full_text,
-        confidence: result.confidence,
-        bboxJson: result.pages as any,
-      },
-    });
-  }
-
-  private extractQuestionIds(structure: any): string[] {
+  private extractQuestionIds(structure: QuestionnaireStructure): string[] {
     const questionIds: string[] = [];
-    
+
     for (const domain of structure.domains || []) {
       for (const q of domain.questions || []) {
         questionIds.push(q.id);
       }
     }
-    
-    if (structure.overall_section && Array.isArray(structure.overall_section)) {
-      for (const q of structure.overall_section) {
-        if (q.id) {
-          questionIds.push(q.id);
-        }
-      }
+
+    for (const q of structure.overall_section || []) {
+      if (q.id) questionIds.push(q.id);
     }
-    
+
     return questionIds;
   }
 
-  private parseAnswersFromText(
-    fullText: string,
-    questionIds: string[],
-    pages?: OcrPage[],
-    structure?: any,
-  ): Record<string, string> {
-    this.logger.warn('Fallback parsing: returning empty answers');
-    return {};
+  private calculateScores(
+    structure: QuestionnaireStructure,
+    answers: Record<string, string>,
+  ) {
+    const domainTotals = this.calculateDomainTotals(structure, answers);
+    return this.classifyResults(structure, domainTotals);
   }
 
-  private extractQuestionNumber(qId: string): string | null {
-    const match = qId.match(/(\d+)$/);
-    return match ? match[1] : null;
-  }
-
-  private calculateDomainScores(
-    structure: any,
+  private calculateDomainTotals(
+    structure: QuestionnaireStructure,
     answers: Record<string, string>,
   ): Record<string, number> {
     const scoreValues = structure.rules?.score_values || { Y: 10, S: 5, N: 0 };
@@ -442,7 +354,7 @@ export class OcrService {
   }
 
   private classifyResults(
-    structure: any,
+    structure: QuestionnaireStructure,
     domainTotals: Record<string, number>,
   ) {
     const monitorMargin = structure.rules?.monitor_margin || 2;
@@ -466,13 +378,67 @@ export class OcrService {
 
     const hasRefer = Object.values(domainConclusions).includes('REFER');
     const hasMonitor = Object.values(domainConclusions).includes('MONITOR');
-    const finalConclusion = hasRefer
-      ? 'REFER'
-      : hasMonitor
-        ? 'MONITOR'
-        : 'NORMAL';
+    const finalConclusion = hasRefer ? 'REFER' : hasMonitor ? 'MONITOR' : 'NORMAL';
 
     return { domainScores, finalConclusion };
   }
-}
 
+  private async callOcrRecognize(file: Express.Multer.File): Promise<OcrResponse> {
+    const form = new FormData();
+    form.append('file', file.buffer, {
+      filename: file.originalname,
+      contentType: file.mimetype,
+    });
+
+    const response = await fetch(`${this.ocrServiceUrl}/recognize`, {
+      method: 'POST',
+      headers: form.getHeaders(),
+      body: form,
+      timeout: this.requestTimeout,
+      signal: AbortSignal.timeout(this.requestTimeout),
+    } as any);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      this.logger.error(`OCR service error (${response.status}): ${errorText}`);
+      let errorMessage = errorText;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.detail || errorJson.message || errorText;
+      } catch {
+        // Keep original errorText
+      }
+      throw new BadGatewayException(errorMessage);
+    }
+
+    return (await response.json()) as OcrResponse;
+  }
+
+  private async saveFileToDb(file: Express.Multer.File, childId?: number) {
+    return this.prisma.file.create({
+      data: {
+        originalName: file.originalname,
+        fileData: Buffer.from(file.buffer),
+        mimeType: file.mimetype,
+        sizeBytes: file.size,
+        ...(childId && { childId }),
+      },
+    });
+  }
+
+  private async saveOcrResult(
+    fileId: number,
+    questionnaireVersionId: number | undefined,
+    result: OcrResponse,
+  ) {
+    return this.prisma.ocrResult.create({
+      data: {
+        fileId,
+        questionnaireVersionId: questionnaireVersionId || null,
+        rawText: result.full_text,
+        confidence: result.confidence,
+        bboxJson: result.pages as any,
+      },
+    });
+  }
+}

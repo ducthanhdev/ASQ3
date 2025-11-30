@@ -1,4 +1,16 @@
-import { Body, Controller, Get, Put, Delete, Param, ParseIntPipe, Post, Patch, UseGuards, Request } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Put,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { CreateAssessmentDto } from './dto/create-assessment.dto';
 import { UpdateAssessmentDto } from './dto/update-assessment.dto';
 import { SubmitOnlineAssessmentDto } from './dto/submit-online-assessment.dto';
@@ -11,7 +23,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 @Controller('assessments')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class AssessmentsController {
-  constructor(private service: AssessmentsService) {}
+  constructor(private readonly service: AssessmentsService) {}
 
   @Get()
   @Roles('SPECIALIST', 'ADMIN')
@@ -41,13 +53,20 @@ export class AssessmentsController {
 
   @Put(':id')
   @Roles('SPECIALIST', 'ADMIN')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateAssessmentDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateAssessmentDto,
+  ) {
     return this.service.update(id, dto);
   }
 
   @Patch(':id/review')
   @Roles('SPECIALIST', 'ADMIN')
-  review(@Param('id', ParseIntPipe) id: number, @Body() dto: ReviewAssessmentDto, @Request() req) {
+  review(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: ReviewAssessmentDto,
+    @Request() req,
+  ) {
     return this.service.review(id, dto, req.user);
   }
 

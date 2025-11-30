@@ -1,4 +1,8 @@
-import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateChildDto } from './dto/create-child.dto';
 import { UpdateChildDto } from './dto/update-child.dto';
@@ -33,6 +37,7 @@ export class ChildrenService {
             id: true,
             createdAt: true,
             summaryResultJson: true,
+            finalConclusion: true,
           },
           orderBy: { createdAt: 'desc' },
         },
@@ -61,9 +66,11 @@ export class ChildrenService {
 
   create(dto: CreateChildDto, user: any) {
     const parentId = user.role === 'PARENT' ? user.userId : null;
-    const fullName = [dto.lastName, dto.middleName, dto.firstName]
-      .filter(Boolean)
-      .join(' ');
+    const fullName = this.buildFullName(
+      dto.lastName,
+      dto.middleName,
+      dto.firstName,
+    );
 
     return this.prisma.child.create({
       data: {
@@ -92,17 +99,19 @@ export class ChildrenService {
     }
 
     const updateData: any = {};
-    if (dto.firstName || dto.middleName || dto.lastName) {
+
+    if (dto.firstName !== undefined || dto.middleName !== undefined || dto.lastName !== undefined) {
       const firstName = dto.firstName ?? child.firstName;
       const middleName = dto.middleName ?? child.middleName;
       const lastName = dto.lastName ?? child.lastName;
       updateData.firstName = firstName;
       updateData.middleName = middleName;
       updateData.lastName = lastName;
-      updateData.fullName = [lastName, middleName, firstName].filter(Boolean).join(' ');
+      updateData.fullName = this.buildFullName(lastName, middleName, firstName);
     }
-    if (dto.gender) updateData.gender = dto.gender as Gender;
-    if (dto.birthDate) updateData.birthDate = new Date(dto.birthDate);
+
+    if (dto.gender !== undefined) updateData.gender = dto.gender as Gender;
+    if (dto.birthDate !== undefined) updateData.birthDate = new Date(dto.birthDate);
     if (dto.prematureWeeks !== undefined) updateData.prematureWeeks = dto.prematureWeeks;
     if (dto.guardianName !== undefined) updateData.guardianName = dto.guardianName;
     if (dto.guardianPhone !== undefined) updateData.guardianPhone = dto.guardianPhone;
@@ -131,5 +140,9 @@ export class ChildrenService {
       where: { childId: id },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  private buildFullName(lastName?: string, middleName?: string, firstName?: string): string {
+    return [lastName, middleName, firstName].filter(Boolean).join(' ');
   }
 }

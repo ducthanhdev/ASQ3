@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import { Edit, Calendar, User, Phone, Mail, FileText, Plus, Loader2, AlertCircle, Scan, Printer } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "../components/ui/button";
 
 interface Child {
   id: number;
@@ -32,10 +33,40 @@ export default function ChildDetail() {
   const [loadingScan, setLoadingScan] = useState(false);
 
   useEffect(() => {
+    if (!id) return;
     api.get(`/children/${id}`)
       .then((res) => setChild(res.data))
       .finally(() => setLoading(false));
   }, [id]);
+
+  const getConclusionColor = (conclusion?: string) => {
+    if (conclusion === "REFER") return "bg-red-100 text-red-700";
+    if (conclusion === "MONITOR") return "bg-yellow-100 text-yellow-700";
+    return "bg-green-100 text-green-700";
+  };
+
+  const handlePrintQuestionnaire = async () => {
+    if (!id) return;
+    try {
+      const res = await api.get(`/questionnaires/auto-select?childId=${id}`);
+      navigate(`/print-questionnaire/${res.data.version.id}?childId=${id}`);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Không thể tải bảng câu hỏi");
+    }
+  };
+
+  const handleScanAssessment = async () => {
+    if (!id) return;
+    setLoadingScan(true);
+    try {
+      const res = await api.get(`/questionnaires/auto-select?childId=${id}`);
+      navigate(`/scan-assessment?childId=${id}&questionnaireVersionId=${res.data.version.id}`);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Không thể tải bảng câu hỏi");
+    } finally {
+      setLoadingScan(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -56,41 +87,6 @@ export default function ChildDetail() {
       </div>
     );
   }
-
-  const getConclusionColor = (conclusion?: string) => {
-    if (conclusion === "REFER") return "bg-red-100 text-red-700";
-    if (conclusion === "MONITOR") return "bg-yellow-100 text-yellow-700";
-    return "bg-green-100 text-green-700";
-  };
-
-  const handlePrintQuestionnaire = async () => {
-    if (!id) return;
-    
-    try {
-      // Tự động chọn phiếu dựa trên độ tuổi của trẻ
-      const res = await api.get(`/questionnaires/auto-select?childId=${id}`);
-      const versionId = res.data.version.id;
-      navigate(`/print-questionnaire/${versionId}?childId=${id}`);
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Không thể tải bảng câu hỏi");
-    }
-  };
-
-  const handleScanAssessment = async () => {
-    if (!id) return;
-    
-    setLoadingScan(true);
-    try {
-      // Tự động chọn phiếu dựa trên độ tuổi của trẻ
-      const res = await api.get(`/questionnaires/auto-select?childId=${id}`);
-      const versionId = res.data.version.id;
-      navigate(`/scan-assessment?childId=${id}&questionnaireVersionId=${versionId}`);
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Không thể tải bảng câu hỏi");
-    } finally {
-      setLoadingScan(false);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -190,28 +186,24 @@ export default function ChildDetail() {
             <p className="text-sm text-gray-600 mt-1">View and manage assessment records</p>
           </div>
           <div className="flex items-center gap-3">
-            <button
-              onClick={handlePrintQuestionnaire}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              <Printer className="w-4 h-4" />
+            <Button onClick={handlePrintQuestionnaire} className="bg-blue-600 hover:bg-blue-700">
+              <Printer className="w-4 h-4 mr-2" />
               In phiếu
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleScanAssessment}
               disabled={loadingScan}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-purple-600 hover:bg-purple-700"
             >
-              <Scan className="w-4 h-4" />
+              <Scan className="w-4 h-4 mr-2" />
               {loadingScan ? "Loading..." : "Scan Assessment"}
-            </button>
-          <Link
-            to={`/children/${id}/new-assessment`}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-          >
-            <Plus className="w-4 h-4" />
-            New Assessment
-          </Link>
+            </Button>
+            <Link to={`/children/${id}/new-assessment`}>
+              <Button className="bg-green-600 hover:bg-green-700">
+                <Plus className="w-4 h-4 mr-2" />
+                New Assessment
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -226,7 +218,7 @@ export default function ChildDetail() {
               <Link
                 key={assessment.id}
                 to={`/assessment/${assessment.id}`}
-                className="block p-4 border rounded-lg hover:bg-gray-50 hover:border-blue-300 transition-colors"
+                className="block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-blue-300 transition-colors"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
@@ -254,4 +246,3 @@ export default function ChildDetail() {
     </div>
   );
 }
-

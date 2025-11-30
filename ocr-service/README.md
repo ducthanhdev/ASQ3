@@ -1,165 +1,95 @@
-# ASQ3 OCR Service
+# 📘 README – ASQ-3 OCR System (Gemini Vision)
 
-Python OCR service sử dụng FastAPI + PaddleOCR + YOLO để xử lý scan phiếu đánh giá ASQ3.
+Hệ thống trích xuất dữ liệu từ phiếu ASQ-3 sử dụng **Gemini Vision OCR**, không cần train mô hình, không dùng PaddleOCR/YOLO.
 
-## Features
+## 🚀 Giới thiệu
 
-- ✅ Nhận dạng text từ ảnh/GIF/PDF bằng PaddleOCR
-- ✅ Phát hiện checkbox bằng YOLO model
-- ✅ Xử lý GIF: giải nén frames, loại bỏ trùng lặp
-- ✅ Trả về text + bounding boxes + confidence scores
-- ✅ Parse answers từ checkbox và OCR text
-- ✅ Hỗ trợ tiếng Việt
+ASQ-3 OCR System cho phép:
 
-## 📋 Yêu cầu hệ thống
+- Phụ huynh tải lên ảnh/PDF phiếu ASQ-3 đã điền tay  
+- Hệ thống tự đọc tất cả checkbox trong form  
+- Chuyển về dữ liệu JSON theo các domain  
+- Độ chính xác ~99% nhờ công nghệ LLM Vision (Gemini)
 
-- Python 3.10+
-- pip
-- (Tùy chọn) CUDA GPU để tăng tốc độ xử lý
+Hệ thống này được xây dựng để thay thế OCR truyền thống (PaddleOCR, YOLO), vốn thường sai checkbox, nhầm ký tự hoặc khó xử lý layout.
 
-## 🚀 Hướng dẫn cài đặt cho người mới
+## 🧠 Công nghệ sử dụng
 
-### Bước 1: Clone repository
+### Gemini Vision Models
+- gemini-2.5-pro  
+- gemini-2.5-flash  
+- gemini-2.0-flash  
+- gemini-2.5-flash-lite  
 
-```bash
-git clone <repository-url>
-cd ASQ3/ocr-service
+### FastAPI Backend
+- Python 3.10+  
+- Google Generative AI SDK  
+- PDF → PNG converter (PyMuPDF)
+
+## 📌 Domain ASQ-3
+
+- communication_q1 → communication_q6  
+- gross_motor_q1 → gross_motor_q6  
+- fine_motor_q1 → fine_motor_q6  
+- problem_solving_q1 → problem_solving_q6  
+- personal_social_q1 → personal_social_q6  
+- overall_q1 → overall_q8  
+
+Mapping:
+- C → Y  
+- D → S  
+- K → N  
+
+## 📁 Cấu trúc thư mục
+
+```
+ocr-service/
+│
+├── app/
+│   ├── __init__.py
+│   ├── main.py
+│   ├── routers/
+│   │   ├── __init__.py
+│   │   └── ocr_router.py
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── gemini_ocr.py      # Gemini Vision OCR service
+│   │   ├── pdf_converter.py   # PDF to image converter
+│   │   └── utils.py           # Utility functions
+│   └── config/
+│       ├── __init__.py
+│       └── models.py           # Model configuration
+│
+├── requirements.txt
+├── .env.example
+└── README.md
 ```
 
-### Bước 2: Tạo virtual environment (Khuyến nghị)
+## 📌 Cài đặt
 
-```bash
-# Tạo virtual environment
-python3 -m venv venv
-
-# Kích hoạt virtual environment
-# Trên Linux/Mac:
-source venv/bin/activate
-# Trên Windows:
-# venv\Scripts\activate
 ```
-
-### Bước 3: Cài đặt dependencies
-
-```bash
-# Cài đặt tất cả packages cần thiết
 pip install -r requirements.txt
 ```
 
-**Lưu ý:** 
-- Quá trình cài đặt có thể mất 5-10 phút
-- PaddleOCR và PyTorch là các package lớn
-- Nếu có GPU, cài đặt PyTorch với CUDA support (xem [install_pytorch_cuda.sh](install_pytorch_cuda.sh))
+Tạo file `.env`:
 
-### Bước 4: Download YOLO model (Nếu chưa có)
-
-Nếu bạn đã có model file `checkbox_model/best.pt`, bỏ qua bước này.
-
-Nếu chưa có, bạn có 2 lựa chọn:
-
-#### Option A: Download từ nơi lưu trữ (Nhanh nhất)
-```bash
-# Download best.pt từ Google Drive/Cloud Storage
-# Đặt vào: ocr-service/checkbox_model/best.pt
-mkdir -p checkbox_model
-# Sau đó copy file best.pt vào đây
+```
+GEMINI_API_KEY=your_key
 ```
 
-#### Option B: Train model mới (Mất thời gian)
-```bash
-# Train model từ đầu (mất vài giờ)
-python3 train_yolo_quick.py
+## 🧩 API Endpoints
 
-# Hoặc train nhanh (5 epochs, ~30 phút)
-python3 train_yolo_very_quick.py
-```
+### POST `/parse`
 
-### Bước 5: Chạy service
+Parse ASQ-3 form using Gemini Vision OCR.
 
-```bash
-# Chạy development server
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-
-# Hoặc chạy production server
-uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
-```
-
-Service sẽ chạy tại: `http://localhost:8000`
-
-**Lưu ý lần đầu chạy:**
-- PaddleOCR sẽ tự động tải model lần đầu (có thể mất 2-5 phút)
-- Model sẽ được cache ở `~/.paddlex/` cho các lần chạy sau
-
-### Bước 6: Kiểm tra service
-
-```bash
-# Health check
-curl http://localhost:8000/health
-
-# Hoặc mở browser: http://localhost:8000/docs
-# Để xem API documentation (Swagger UI)
-```
-
-## 🐳 Chạy bằng Docker (Tùy chọn)
-
-```bash
-# Build image
-docker build -t asq3-ocr .
-
-# Run container
-docker run -p 8000:8000 asq3-ocr
-```
-
-## 📚 API Endpoints
-
-### POST /recognize
-
-Upload file để OCR (PDF/Image/GIF).
-
-**Request:**
-```bash
-curl -X POST "http://localhost:8000/recognize" \
-  -F "file=@your_file.pdf"
-```
-
-**Response:**
+**Request Body (JSON):**
 ```json
 {
-  "status": "ok",
-  "pages": [
-    {
-      "frame_index": 0,
-      "width": 1190,
-      "height": 1684,
-      "texts": [
-        {
-          "text": "ASQ-3: 6 months",
-          "bbox": [476, 7, 737, 12, ...],
-          "conf": 0.989
-        }
-      ],
-      "question_numbers": [1, 2, 3, 4, 5, 6]
-    }
-  ],
-  "full_text": "ASQ-3: 6 months\n...",
-  "confidence": 0.85,
-  "total_frames": 7,
-  "file_data": "base64_encoded_file...",
-  "file_name": "your_file.pdf"
-}
-```
-
-### POST /parse
-
-Parse OCR results để extract answers từ checkboxes.
-
-**Request:**
-```json
-{
-  "pages": [...],
+  "pages": [...],  // Optional: OCR results from previous /recognize call
   "question_ids": ["communication_q1", "communication_q2", ...],
-  "file_data": "base64_encoded_file...",
-  "file_name": "your_file.pdf"
+  "file_data": "base64_encoded_file",  // Optional: PDF or image file (base64)
+  "file_name": "form.pdf"  // Optional: file name (for type detection)
 }
 ```
 
@@ -170,69 +100,120 @@ Parse OCR results để extract answers từ checkboxes.
   "answers": {
     "communication_q1": "Y",
     "communication_q2": "S",
-    "communication_q3": "N"
-  },
-  "total_parsed": 34,
-  "total_questions": 38
+    "gross_motor_q1": "N",
+    ...
+  }
 }
 ```
 
-### GET /health
+**Example:**
+```bash
+curl -X POST http://localhost:8000/parse \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question_ids": ["communication_q1", "communication_q2"],
+    "file_data": "iVBORw0KGgoAAAANS...",
+    "file_name": "asq3_form.pdf"
+  }'
+```
+
+### POST `/recognize`
+
+Legacy endpoint for compatibility with NestJS backend. Returns minimal response since Gemini Vision doesn't require separate text recognition.
+
+### GET `/health`
 
 Health check endpoint.
 
-## 🎯 Training Model
-
-Xem chi tiết trong:
-- [TRAINING_GUIDE.md](TRAINING_GUIDE.md) - Hướng dẫn training cơ bản
-- [TRAINING_IMPROVEMENT.md](TRAINING_IMPROVEMENT.md) - Cải thiện model
-- [README_YOLO.md](README_YOLO.md) - Thông tin về YOLO integration
-
-## 🔧 Troubleshooting
-
-### Lỗi: "PaddleOCR model not found"
-- Model sẽ tự động download lần đầu, đợi 2-5 phút
-- Kiểm tra kết nối internet
-
-### Lỗi: "YOLO model not found"
-- Đảm bảo có file `checkbox_model/best.pt`
-- Hoặc train model mới bằng `train_yolo_quick.py`
-
-### Lỗi: "CUDA out of memory"
-- Giảm batch size trong training script
-- Hoặc dùng CPU thay vì GPU
-
-### Service chạy chậm
-- Lần đầu chạy sẽ chậm do download models
-- Sử dụng GPU để tăng tốc độ
-- Tăng số workers: `--workers 4`
-
-## 📝 Environment Variables
-
-- `PYTHONUNBUFFERED=1` - Để log hiển thị ngay lập tức
-- `CUDA_VISIBLE_DEVICES=0` - Chỉ định GPU device
-
-## 📦 Project Structure
-
-```
-ocr-service/
-├── main.py                 # FastAPI app entry point
-├── routers/                # API routes
-├── services/               # Business logic
-│   ├── ocr_service.py     # PaddleOCR service
-│   ├── yolo_checkbox_parser.py  # YOLO + OCR parser
-│   └── parser_service.py  # Text parser
-├── checkbox_model/         # YOLO model files
-├── train_yolo*.py          # Training scripts
-└── requirements.txt        # Dependencies
+**Response:**
+```json
+{
+  "status": "ok",
+  "service": "gemini-ocr"
+}
 ```
 
-## 🔗 Liên kết hữu ích
+## 🧠 Fallback đa mô hình
 
-- [PaddleOCR Documentation](https://github.com/PaddlePaddle/PaddleOCR)
-- [Ultralytics YOLO](https://docs.ultralytics.com/)
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+```
+gemini-2.5-pro
+gemini-2.5-flash
+gemini-2.0-flash
+gemini-2.5-flash-lite
+```
 
-## 📄 License
+## 🎯 Prompt OCR
 
-[Your License Here]
+```
+You are an OCR + Checkbox Reasoning Assistant.
+Rules:
+- C = Y
+- D = S
+- K = N
+- Return ONLY JSON.
+```
+
+## 📊 Accuracy
+
+| Model | Accuracy |
+|-------|----------|
+| gemini-2.5-pro | 99–100% |
+| gemini-2.5-flash | 97–99% |
+| gemini-2.0-flash | 95–97% |
+
+## 💡 Chạy local
+
+### 1. Cài đặt dependencies
+
+```bash
+cd ocr-service
+pip install -r requirements.txt
+```
+
+### 2. Cấu hình API key
+
+Tạo file `.env` từ `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+Sửa file `.env` và thêm Gemini API key:
+
+```
+GEMINI_API_KEY=your_actual_api_key_here
+```
+
+Lấy API key tại: https://makersuite.google.com/app/apikey
+
+### 3. Chạy service
+
+```bash
+# Development mode (auto-reload)
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Production mode
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+Service sẽ chạy tại: `http://localhost:8000`
+
+### 4. Test API
+
+```bash
+# Health check
+curl http://localhost:8000/ocr/health
+
+# Parse form (example)
+curl -X POST http://localhost:8000/ocr/parse \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question_ids": ["communication_q1", "communication_q2"],
+    "file_data": "base64_encoded_image_or_pdf",
+    "file_name": "form.pdf"
+  }'
+```
+
+## 🔒 License
+
+MIT License

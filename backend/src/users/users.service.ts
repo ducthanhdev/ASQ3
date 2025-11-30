@@ -1,8 +1,29 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcryptjs';
+
+const USER_SELECT_FIELDS = {
+  id: true,
+  username: true,
+  email: true,
+  role: true,
+  createdAt: true,
+  lastLoginAt: true,
+};
+
+const USER_SELECT_FIELDS_NO_LOGIN = {
+  id: true,
+  username: true,
+  email: true,
+  role: true,
+  createdAt: true,
+};
 
 @Injectable()
 export class UsersService {
@@ -10,14 +31,7 @@ export class UsersService {
 
   findAll() {
     return this.prisma.user.findMany({
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        role: true,
-        createdAt: true,
-        lastLoginAt: true,
-      },
+      select: USER_SELECT_FIELDS,
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -25,14 +39,7 @@ export class UsersService {
   async findOne(id: number) {
     const user = await this.prisma.user.findUnique({
       where: { id },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        role: true,
-        createdAt: true,
-        lastLoginAt: true,
-      },
+      select: USER_SELECT_FIELDS,
     });
     if (!user) throw new NotFoundException();
     return user;
@@ -47,10 +54,12 @@ export class UsersService {
         ],
       },
     });
-    if (existing) throw new ConflictException('Username or email already exists');
+    if (existing) {
+      throw new ConflictException('Username or email already exists');
+    }
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
-    
+
     return this.prisma.user.create({
       data: {
         username: dto.username,
@@ -58,13 +67,7 @@ export class UsersService {
         passwordHash,
         role: (dto.role as any) || 'PARENT',
       },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        role: true,
-        createdAt: true,
-      },
+      select: USER_SELECT_FIELDS_NO_LOGIN,
     });
   }
 
@@ -73,20 +76,16 @@ export class UsersService {
     if (!user) throw new NotFoundException();
 
     const data: any = {};
-    if (dto.email) data.email = dto.email;
-    if (dto.role) data.role = dto.role;
-    if (dto.password) data.passwordHash = await bcrypt.hash(dto.password, 10);
+    if (dto.email !== undefined) data.email = dto.email;
+    if (dto.role !== undefined) data.role = dto.role as any;
+    if (dto.password) {
+      data.passwordHash = await bcrypt.hash(dto.password, 10);
+    }
 
     return this.prisma.user.update({
       where: { id },
       data,
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        role: true,
-        createdAt: true,
-      },
+      select: USER_SELECT_FIELDS_NO_LOGIN,
     });
   }
 
@@ -97,18 +96,11 @@ export class UsersService {
     return this.prisma.user.update({
       where: { id },
       data: { role: role as any },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        role: true,
-        createdAt: true,
-      },
+      select: USER_SELECT_FIELDS_NO_LOGIN,
     });
   }
 
-  async remove(id: number) {
+  remove(id: number) {
     return this.prisma.user.delete({ where: { id } });
   }
 }
-

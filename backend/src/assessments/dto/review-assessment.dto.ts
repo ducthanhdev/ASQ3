@@ -8,4 +8,3 @@ export class ReviewAssessmentDto {
   @IsOptional()
   notes?: string;
 }
-
