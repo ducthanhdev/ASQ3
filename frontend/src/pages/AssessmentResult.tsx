@@ -81,6 +81,7 @@ export default function AssessmentResult() {
   const [showScanFiles, setShowScanFiles] = useState(false);
   const [scanFiles, setScanFiles] = useState<ScanFile[]>([]);
   const [loadingFiles, setLoadingFiles] = useState(false);
+  const [downloadingAll, setDownloadingAll] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -231,6 +232,37 @@ export default function AssessmentResult() {
       toast.error(err.response?.data?.message || "Không thể tải danh sách bản scan");
     } finally {
       setLoadingFiles(false);
+    }
+  };
+
+  const handleDownloadAll = async () => {
+    if (scanFiles.length === 0) return;
+    setDownloadingAll(true);
+    try {
+      for (let i = 0; i < scanFiles.length; i++) {
+        const file = scanFiles[i];
+        try {
+          const response = await api.get(`/api/ocr/files/${file.id}`, {
+            responseType: "blob",
+          });
+          const url = window.URL.createObjectURL(new Blob([response.data]));
+          const link = document.createElement("a");
+          link.href = url;
+          link.setAttribute("download", file.originalName);
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.URL.revokeObjectURL(url);
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        } catch (err: any) {
+          toast.error(`Không thể tải file: ${file.originalName}`);
+        }
+      }
+      toast.success(`Đã tải ${scanFiles.length} file`);
+    } catch (err: any) {
+      toast.error("Lỗi khi tải tất cả file");
+    } finally {
+      setDownloadingAll(false);
     }
   };
 
@@ -490,15 +522,29 @@ export default function AssessmentResult() {
             <CardHeader className="flex items-center justify-between border-b">
               <CardTitle className="flex items-center gap-2">
                 <Image className="w-5 h-5" />
-                Các bản scan
+                Các bản scan ({scanFiles.length})
               </CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowScanFiles(false)}
-              >
-                <X className="w-4 h-4" />
-              </Button>
+              <div className="flex items-center gap-2">
+                {scanFiles.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDownloadAll}
+                    disabled={downloadingAll}
+                    className="flex items-center gap-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    {downloadingAll ? "Đang tải..." : "Tải tất cả"}
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowScanFiles(false)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="flex-1 overflow-y-auto p-6">
               {loadingFiles ? (
