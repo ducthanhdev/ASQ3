@@ -79,7 +79,7 @@ export default function ChildDetail() {
     );
   }
 
-  if (!child) {
+  if (!child || !child?.parent) {
     return (
       <div className="text-center py-12">
         <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
