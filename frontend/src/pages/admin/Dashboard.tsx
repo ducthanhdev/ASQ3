@@ -14,6 +14,13 @@ interface RecentActivity {
   fullName: string;
   gender?: string;
   createdAt: string;
+  parent?: {
+    id: number;
+    username: string;
+    email: string;
+  } | null;
+  guardianName?: string | null;
+  guardianPhone?: string | null;
 }
 
 interface User {
@@ -42,7 +49,15 @@ export default function AdminDashboard() {
         assessments: assessments.data.length,
         questionnaires: questionnaires.data.length,
       });
-      setRecentChildren(children.data.slice(0, 5));
+      
+      // Filter children: chỉ hiển thị những child có parent hoặc guardian
+      const filteredChildren = children.data.filter((child: RecentActivity) => {
+        const hasParent = child.parent && child.parent.id;
+        const hasGuardian = child.guardianName || child.guardianPhone;
+        return hasParent || hasGuardian;
+      });
+      
+      setRecentChildren(filteredChildren.slice(0, 5));
       setRecentUsers(users.data.slice(-3).reverse());
     }).finally(() => setLoading(false));
   }, []);
