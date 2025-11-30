@@ -8,7 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import fetch from 'node-fetch';
-import FormData from 'form-data';
+const FormData = require('form-data');
 
 export interface OcrTextItem {
   text: string;
@@ -131,7 +131,12 @@ export class OcrService {
     }
 
     const structure = version.structureJson as QuestionnaireStructure;
-    const answers = await this.getOrParseAnswers(ocrResult, structure, questionnaireVersionId);
+    const answers = await this.getOrParseAnswers(
+      ocrResult,
+      structure,
+      questionnaireVersionId,
+      childId,
+    );
     const { domainScores, finalConclusion } = this.calculateScores(structure, answers);
 
     const assessment = await this.prisma.assessment.create({
@@ -163,6 +168,7 @@ export class OcrService {
     ocrResult: any,
     structure: QuestionnaireStructure,
     questionnaireVersionId: number,
+    childId: number,
   ): Promise<Record<string, string>> {
     const parsedAnswers = ocrResult.parsedAnswersJson as Record<string, string> | null;
 
@@ -175,8 +181,13 @@ export class OcrService {
       const relatedIds = await this.findRelatedOcrResultIds(
         ocrResult.id,
         questionnaireVersionId,
+        childId,
       );
       const allIds = [ocrResult.id, ...relatedIds];
+
+      this.logger.log(
+        `Parsing ${allIds.length} OCR results: ${allIds.join(', ')}`,
+      );
 
       const answers = await this.parseOcrResults(allIds, questionIds);
 
@@ -195,16 +206,24 @@ export class OcrService {
   private async findRelatedOcrResultIds(
     ocrResultId: number,
     questionnaireVersionId: number,
+    childId: number,
   ): Promise<number[]> {
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+
+    const whereCondition: any = {
+      questionnaireVersionId,
+      id: { not: ocrResultId },
+      createdAt: { gte: twoHoursAgo },
+    };
+
+    if (childId) {
+      whereCondition.file = { childId };
+    }
+
     const results = await this.prisma.ocrResult.findMany({
-      where: {
-        questionnaireVersionId,
-        id: { not: ocrResultId },
-        createdAt: { gte: oneHourAgo },
-      },
+      where: whereCondition,
       orderBy: { createdAt: 'asc' },
-      take: 10,
+      take: 20,
       select: { id: true },
     });
 
