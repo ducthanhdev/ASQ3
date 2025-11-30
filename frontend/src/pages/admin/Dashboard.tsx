@@ -43,17 +43,22 @@ export default function AdminDashboard() {
       api.get("/assessments"),
       api.get("/questionnaires"),
     ]).then(([users, children, assessments, questionnaires]) => {
-      setStats({
-        users: users.data.length,
-        children: children.data.length,
-        assessments: assessments.data.length,
-        questionnaires: questionnaires.data.length,
-      });
-      
       const filteredChildren = children.data.filter((child: RecentActivity) => {
         const hasParent = child.parent && child.parent.id;
-        const hasGuardian = child.guardianName || child.guardianPhone;
-        return hasParent && hasGuardian;
+        return hasParent;
+      });
+      
+      const validChildIds = new Set<number>(filteredChildren.map((c: any) => c.id as number));
+      
+      const filteredAssessments = assessments.data.filter((assessment: any) => {
+        return assessment.child && validChildIds.has(assessment.child.id);
+      });
+      
+      setStats({
+        users: users.data.length,
+        children: filteredChildren.length,
+        assessments: filteredAssessments.length,
+        questionnaires: questionnaires.data.length,
       });
       
       setRecentChildren(filteredChildren.slice(0, 5));
