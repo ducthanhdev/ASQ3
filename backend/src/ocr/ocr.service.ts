@@ -460,4 +460,93 @@ export class OcrService {
       },
     });
   }
+
+  async getFilesByChild(childId: number) {
+    const files = await this.prisma.file.findMany({
+      where: { childId },
+      select: {
+        id: true,
+        originalName: true,
+        mimeType: true,
+        sizeBytes: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return files;
+  }
+
+  async getFilesByAssessment(assessmentId: number) {
+    const assessment = await this.prisma.assessment.findUnique({
+      where: { id: assessmentId },
+      select: {
+        childId: true,
+        questionnaireVersionId: true,
+        assessmentDate: true,
+        scanFileId: true,
+      },
+    });
+
+    if (!assessment) {
+      throw new NotFoundException('Assessment not found');
+    }
+
+    const twoHoursBefore = new Date(
+      assessment.assessmentDate.getTime() - 2 * 60 * 60 * 1000,
+    );
+    const twoHoursAfter = new Date(
+      assessment.assessmentDate.getTime() + 2 * 60 * 60 * 1000,
+    );
+
+    const ocrResults = await this.prisma.ocrResult.findMany({
+      where: {
+        questionnaireVersionId: assessment.questionnaireVersionId,
+        file: { childId: assessment.childId },
+        createdAt: {
+          gte: twoHoursBefore,
+          lte: twoHoursAfter,
+        },
+      },
+      select: { fileId: true },
+      distinct: ['fileId'],
+    });
+
+    const fileIds = ocrResults.map((r) => r.fileId);
+    if (assessment.scanFileId && !fileIds.includes(assessment.scanFileId)) {
+      fileIds.push(assessment.scanFileId);
+    }
+
+    if (fileIds.length === 0) {
+      return [];
+    }
+
+    const files = await this.prisma.file.findMany({
+      where: { id: { in: fileIds } },
+      select: {
+        id: true,
+        originalName: true,
+        mimeType: true,
+        sizeBytes: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    return files;
+  }
+
+  async getFileById(fileId: number) {
+    return this.prisma.file.findUnique({
+      where: { id: fileId },
+      select: {
+        id: true,
+        originalName: true,
+        fileData: true,
+        mimeType: true,
+        sizeBytes: true,
+        createdAt: true,
+      },
+    });
+  }
 }

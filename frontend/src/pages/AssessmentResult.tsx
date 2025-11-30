@@ -14,6 +14,9 @@ import {
   Download,
   CheckCircle2,
   XCircle,
+  Image,
+  Eye,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -23,11 +26,20 @@ interface DomainScore {
   conclusion: string;
 }
 
+interface ScanFile {
+  id: number;
+  originalName: string;
+  mimeType: string | null;
+  sizeBytes: number | null;
+  createdAt: string;
+}
+
 interface Assessment {
   id: number;
   assessmentDate: string;
   status?: string;
   finalConclusion?: string;
+  method?: string;
   answersJson?: Record<string, string>;
   scoresJson?: Record<string, DomainScore>;
   summaryResultJson?: {
@@ -66,6 +78,9 @@ export default function AssessmentResult() {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [reviewing, setReviewing] = useState(false);
+  const [showScanFiles, setShowScanFiles] = useState(false);
+  const [scanFiles, setScanFiles] = useState<ScanFile[]>([]);
+  const [loadingFiles, setLoadingFiles] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -202,6 +217,23 @@ export default function AssessmentResult() {
     }
   };
 
+  const handleViewScanFiles = async () => {
+    if (!id) return;
+    setLoadingFiles(true);
+    setShowScanFiles(true);
+    try {
+      const res = await api.get(`/api/ocr/files/assessment/${id}`);
+      setScanFiles(res.data);
+      if (res.data.length === 0) {
+        toast.info("Không có bản scan nào cho assessment này");
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Không thể tải danh sách bản scan");
+    } finally {
+      setLoadingFiles(false);
+    }
+  };
+
   const renderScoreChart = (score: number, maxScore: number) => {
     const circles = [];
     const step = 5;
@@ -241,7 +273,19 @@ export default function AssessmentResult() {
 
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Thông tin đánh giá</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              <span>Thông tin đánh giá</span>
+              {assessment.method === "SCAN" && (
+                <Button
+                  variant="outline"
+                  onClick={handleViewScanFiles}
+                  className="flex items-center gap-2"
+                >
+                  <Image className="w-4 h-4" />
+                  Xem lại các bản scan
+                </Button>
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
@@ -439,6 +483,108 @@ export default function AssessmentResult() {
           </Link>
         </div>
       </div>
+
+      {showScanFiles && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <Card className="max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <CardHeader className="flex items-center justify-between border-b">
+              <CardTitle className="flex items-center gap-2">
+                <Image className="w-5 h-5" />
+                Các bản scan
+              </CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowScanFiles(false)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-y-auto p-6">
+              {loadingFiles ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                </div>
+              ) : scanFiles.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">Không có bản scan nào</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {scanFiles.map((file) => (
+                    <Card key={file.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-sm truncate">{file.originalName}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {file.sizeBytes
+                                ? `${(file.sizeBytes / 1024).toFixed(1)} KB`
+                                : "N/A"}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              {new Date(file.createdAt).toLocaleString("vi-VN")}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1"
+                            onClick={async () => {
+                              try {
+                                const response = await api.get(`/api/ocr/files/${file.id}`, {
+                                  responseType: "blob",
+                                });
+                                const mimeType = file.mimeType || response.headers["content-type"] || "image/png";
+                                const url = window.URL.createObjectURL(
+                                  new Blob([response.data], { type: mimeType })
+                                );
+                                window.open(url, "_blank");
+                                setTimeout(() => window.URL.revokeObjectURL(url), 100);
+                              } catch (err: any) {
+                                toast.error("Không thể xem file");
+                              }
+                            }}
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            Xem
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1"
+                            onClick={async () => {
+                              try {
+                                const response = await api.get(`/api/ocr/files/${file.id}`, {
+                                  responseType: "blob",
+                                });
+                                const url = window.URL.createObjectURL(new Blob([response.data]));
+                                const link = document.createElement("a");
+                                link.href = url;
+                                link.setAttribute("download", file.originalName);
+                                document.body.appendChild(link);
+                                link.click();
+                                link.remove();
+                                window.URL.revokeObjectURL(url);
+                                toast.success("Đã tải file");
+                              } catch (err: any) {
+                                toast.error("Không thể tải file");
+                              }
+                            }}
+                          >
+                            <Download className="w-4 h-4 mr-2" />
+                            Tải
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

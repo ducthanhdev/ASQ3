@@ -1,13 +1,18 @@
 import {
   Controller,
   Post,
+  Get,
+  Param,
+  ParseIntPipe,
   UseInterceptors,
   UploadedFile,
   Body,
   UseGuards,
   Request,
+  Res,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OcrService } from './ocr.service';
 import { RecognizeDto, CreateAssessmentFromOcrDto } from './dto/recognize.dto';
@@ -59,5 +64,36 @@ export class OcrController {
       status: 'ok',
       ...result,
     };
+  }
+
+  @Get('files/child/:childId')
+  async getFilesByChild(@Param('childId', ParseIntPipe) childId: number) {
+    return this.ocrService.getFilesByChild(childId);
+  }
+
+  @Get('files/assessment/:assessmentId')
+  async getFilesByAssessment(
+    @Param('assessmentId', ParseIntPipe) assessmentId: number,
+  ) {
+    return this.ocrService.getFilesByAssessment(assessmentId);
+  }
+
+  @Get('files/:fileId')
+  async getFile(
+    @Param('fileId', ParseIntPipe) fileId: number,
+    @Res() res: Response,
+  ) {
+    const file = await this.ocrService.getFileById(fileId);
+    if (!file?.fileData) {
+      return res.status(404).json({ message: 'File not found' });
+    }
+
+    const buffer = Buffer.from(file.fileData as Buffer);
+    res.setHeader('Content-Type', file.mimeType || 'application/octet-stream');
+    res.setHeader(
+      'Content-Disposition',
+      `inline; filename="${file.originalName}"`,
+    );
+    res.send(buffer);
   }
 }
