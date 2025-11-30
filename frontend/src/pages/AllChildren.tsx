@@ -28,8 +28,8 @@ export default function AllChildren() {
 
   const filteredChildren = children.filter(
     (c) =>
-      c.fullName.toLowerCase().includes(search.toLowerCase()) ||
-      c.parent?.username.toLowerCase().includes(search.toLowerCase())
+    (c.fullName.toLowerCase().includes(search.toLowerCase()) ||
+    c.parent?.username.toLowerCase().includes(search.toLowerCase())) && c.parent
   );
 
   const getAge = (birthDate: string) => {
