@@ -11,7 +11,9 @@ interface Child {
   parent?: {
     id: number;
     username: string;
-  };
+  } | null;
+  guardianName?: string | null;
+  guardianPhone?: string | null;
   createdAt: string;
 }
 
@@ -23,13 +25,20 @@ export default function AdminChildren() {
 
   useEffect(() => {
     api.get("/children")
-      .then((res) => setChildren(res.data))
+      .then((res) => {
+        const childrenWithParentOrGuardian = res.data.filter((child: Child) => {
+          const hasParent = child.parent && child.parent.id;
+          const hasGuardian = child.guardianName || child.guardianPhone;
+          return hasParent && hasGuardian;
+        });
+        setChildren(childrenWithParentOrGuardian);
+      })
       .finally(() => setLoading(false));
   }, []);
 
   const filteredChildren = children.filter((c) => {
     const matchSearch = c.fullName.toLowerCase().includes(search.toLowerCase()) ||
-      c.parent?.username.toLowerCase().includes(search.toLowerCase());
+      c.parent?.username?.toLowerCase().includes(search.toLowerCase());
     const matchGender = filterGender === "ALL" || c.gender === filterGender;
     return matchSearch && matchGender;
   });

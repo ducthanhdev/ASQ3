@@ -21,9 +21,24 @@ export default function AdminAssessments() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    api.get("/assessments")
-      .then((res) => setAssessments(res.data))
-      .finally(() => setLoading(false));
+    Promise.all([
+      api.get("/children"),
+      api.get("/assessments"),
+    ]).then(([childrenRes, assessmentsRes]) => {
+      const validChildren = childrenRes.data.filter((child: any) => {
+        const hasParent = child.parent && child.parent.id;
+        const hasGuardian = child.guardianName || child.guardianPhone;
+        return hasParent && hasGuardian;
+      });
+      
+      const validIds = new Set<number>(validChildren.map((c: any) => c.id as number));
+      
+      const filteredAssessments = assessmentsRes.data.filter((assessment: Assessment) => {
+        return assessment.child && validIds.has(assessment.child.id);
+      });
+      
+      setAssessments(filteredAssessments);
+    }).finally(() => setLoading(false));
   }, []);
 
   const filteredAssessments = assessments.filter((a) =>
@@ -41,7 +56,7 @@ export default function AdminAssessments() {
   const stats = {
     total: assessments.length,
     online: assessments.filter(a => a.method === "ONLINE").length,
-    ocr: assessments.filter(a => a.method === "OCR").length,
+    ocr: assessments.filter(a => a.method === "SCAN").length,
   };
 
   return (
