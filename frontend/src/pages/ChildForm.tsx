@@ -62,7 +62,7 @@ export default function ChildForm() {
       } else {
         await api.post("/children", formData);
       }
-      navigate("/my-children");
+      window.location.href = `/children/${id}`;
     } catch (err) {
       alert("Failed to save child");
     } finally {
