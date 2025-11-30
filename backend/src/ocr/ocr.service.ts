@@ -191,14 +191,23 @@ export class OcrService {
 
       const answers = await this.parseOcrResults(allIds, questionIds);
 
-      await this.prisma.ocrResult.update({
-        where: { id: ocrResult.id },
-        data: { parsedAnswersJson: answers, questionnaireVersionId },
-      });
+      if (!answers || Object.keys(answers).length === 0) {
+        this.logger.warn(
+          `Parse returned empty answers for OCR result ${ocrResult.id}`,
+        );
+      } else {
+        await this.prisma.ocrResult.update({
+          where: { id: ocrResult.id },
+          data: { parsedAnswersJson: answers, questionnaireVersionId },
+        });
+      }
 
       return answers;
     } catch (error) {
-      this.logger.warn(`Auto-parse failed: ${error.message}`);
+      this.logger.error(
+        `Auto-parse failed for OCR result ${ocrResult.id}: ${error.message}`,
+      );
+      this.logger.error(error.stack);
       return {};
     }
   }
@@ -208,12 +217,26 @@ export class OcrService {
     questionnaireVersionId: number,
     childId: number,
   ): Promise<number[]> {
-    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    const currentOcrResult = await this.prisma.ocrResult.findUnique({
+      where: { id: ocrResultId },
+      select: { createdAt: true },
+    });
+
+    if (!currentOcrResult) {
+      return [];
+    }
+
+    const oneMinuteBefore = new Date(
+      currentOcrResult.createdAt.getTime() - 60 * 1000,
+    );
 
     const whereCondition: any = {
       questionnaireVersionId,
       id: { not: ocrResultId },
-      createdAt: { gte: twoHoursAgo },
+      createdAt: {
+        gte: oneMinuteBefore,
+        lte: currentOcrResult.createdAt,
+      },
     };
 
     if (childId) {
@@ -222,12 +245,24 @@ export class OcrService {
 
     const results = await this.prisma.ocrResult.findMany({
       where: whereCondition,
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: 'desc' },
       take: 20,
-      select: { id: true },
+      select: { id: true, createdAt: true },
     });
 
-    return results.map((r) => r.id);
+    const relatedIds: number[] = [];
+    let lastTime = currentOcrResult.createdAt;
+
+    for (const result of results) {
+      const timeDiff = lastTime.getTime() - result.createdAt.getTime();
+      if (timeDiff > 30 * 1000) {
+        break;
+      }
+      relatedIds.push(result.id);
+      lastTime = result.createdAt;
+    }
+
+    return relatedIds.reverse();
   }
 
   private async parseOcrResults(
@@ -336,8 +371,20 @@ export class OcrService {
       }
     }
 
-    for (const q of structure.overall_section || []) {
-      if (q.id) questionIds.push(q.id);
+    const overallSection = structure.overall_section as any;
+    if (overallSection) {
+      if (Array.isArray(overallSection)) {
+        for (const q of overallSection) {
+          if (q && q.id) questionIds.push(q.id);
+        }
+      } else if (typeof overallSection === 'object') {
+        for (const key in overallSection) {
+          const q = overallSection[key];
+          if (q && typeof q === 'object' && q.id) {
+            questionIds.push(q.id);
+          }
+        }
+      }
     }
 
     return questionIds;
