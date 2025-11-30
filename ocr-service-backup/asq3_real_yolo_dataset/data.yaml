@@ -1,7 +1,0 @@
-names:
-- checkbox_empty
-- checkbox_marked
-nc: 2
-path: /home/ducthanhdev/workspace/outsource/ASQ3/ocr-service/asq3_real_yolo_dataset
-train: images/train
-val: images/val
