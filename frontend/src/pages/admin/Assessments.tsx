@@ -27,8 +27,7 @@ export default function AdminAssessments() {
     ]).then(([childrenRes, assessmentsRes]) => {
       const validChildren = childrenRes.data.filter((child: any) => {
         const hasParent = child.parent && child.parent.id;
-        const hasGuardian = child.guardianName || child.guardianPhone;
-        return hasParent && hasGuardian;
+        return hasParent;
       });
       
       const validIds = new Set<number>(validChildren.map((c: any) => c.id as number));

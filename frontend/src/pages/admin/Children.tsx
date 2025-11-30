@@ -28,8 +28,7 @@ export default function AdminChildren() {
       .then((res) => {
         const childrenWithParentOrGuardian = res.data.filter((child: Child) => {
           const hasParent = child.parent && child.parent.id;
-          const hasGuardian = child.guardianName || child.guardianPhone;
-          return hasParent && hasGuardian;
+          return hasParent;
         });
         setChildren(childrenWithParentOrGuardian);
       })
