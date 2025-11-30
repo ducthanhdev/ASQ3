@@ -50,11 +50,10 @@ export default function AdminDashboard() {
         questionnaires: questionnaires.data.length,
       });
       
-      // Filter children: chỉ hiển thị những child có parent hoặc guardian
       const filteredChildren = children.data.filter((child: RecentActivity) => {
         const hasParent = child.parent && child.parent.id;
         const hasGuardian = child.guardianName || child.guardianPhone;
-        return hasParent || hasGuardian;
+        return hasParent && hasGuardian;
       });
       
       setRecentChildren(filteredChildren.slice(0, 5));
