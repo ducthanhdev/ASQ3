@@ -61,15 +61,36 @@ export default function QuestionnaireImport() {
     setLoading(true);
 
     try {
+      if (!jsonText.trim()) {
+        setError("Please provide JSON content");
+        setLoading(false);
+        return;
+      }
+
       const parsed = JSON.parse(jsonText);
       
-      // Auto-detect format and normalize
       let payload;
       if (parsed.structure) {
-        // Already in correct format
-        payload = parsed;
+        payload = {
+          code: parsed.code,
+          title: parsed.title,
+          minMonth: parsed.minMonth,
+          maxMonth: parsed.maxMonth,
+          language: parsed.language,
+          version: parsed.version || "v1.0",
+          structure: parsed.structure
+        };
+      } else if (parsed.structureJson) {
+        payload = {
+          code: parsed.code,
+          title: parsed.title,
+          minMonth: parsed.minMonth,
+          maxMonth: parsed.maxMonth,
+          language: parsed.language,
+          version: parsed.version || "v1.0",
+          structure: parsed.structureJson
+        };
       } else if (parsed.metadata && parsed.domains) {
-        // Legacy format - convert to new format
         payload = {
           code: parsed.code || parsed.metadata.code,
           title: parsed.title || parsed.metadata.title,
@@ -80,12 +101,20 @@ export default function QuestionnaireImport() {
           structure: {
             metadata: parsed.metadata,
             domains: parsed.domains,
-            overall_section: parsed.overall_section || [],
+            overall_section: parsed.overall_section || {},
             rules: parsed.rules || { score_values: { Y: 10, S: 5, N: 0 }, monitor_margin: 2 }
           }
         };
       } else {
-        throw new Error("Invalid JSON structure. Must have 'structure' field or 'metadata' + 'domains'.");
+        throw new Error("Invalid JSON structure. Must have 'structure', 'structureJson', or 'metadata' + 'domains' fields.");
+      }
+
+      if (!payload.code || !payload.title || payload.minMonth === undefined || payload.maxMonth === undefined || !payload.language) {
+        throw new Error("Missing required fields: code, title, minMonth, maxMonth, language");
+      }
+
+      if (!payload.structure || !payload.structure.domains) {
+        throw new Error("Missing 'structure.domains' field");
       }
 
       await api.post("/questionnaires/import-json", payload);
@@ -93,9 +122,11 @@ export default function QuestionnaireImport() {
       setTimeout(() => navigate("/admin/questionnaires"), 2000);
     } catch (err: any) {
       if (err instanceof SyntaxError) {
-        setError("Invalid JSON format");
+        setError("Invalid JSON format: " + err.message);
       } else {
-        setError(err.response?.data?.message || err.message || "Failed to import questionnaire");
+        const errorMessage = err.response?.data?.message || err.message || "Failed to import questionnaire";
+        setError(errorMessage);
+        console.error("Import error:", err);
       }
     } finally {
       setLoading(false);
