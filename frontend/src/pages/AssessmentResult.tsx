@@ -483,7 +483,7 @@ export default function AssessmentResult() {
               Về hồ sơ trẻ
             </Button>
           </Link>
-          {hasRole(["SPECIALIST", "ADMIN"]) && assessment.status === "PENDING_REVIEW" && (
+          {hasRole(["SPECIALIST"]) && assessment.status === "PENDING_REVIEW" && (
             <>
               <Button
                 onClick={() => handleReview("APPROVED")}

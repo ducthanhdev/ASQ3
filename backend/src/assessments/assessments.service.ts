@@ -91,9 +91,9 @@ export class AssessmentsService {
   }
 
   async review(id: number, dto: any, user: any) {
-    if (user.role !== 'SPECIALIST' && user.role !== 'ADMIN') {
+    if (user.role !== 'SPECIALIST') {
       throw new ForbiddenException(
-        'Only specialists and admins can review assessments',
+        'Only specialists can review assessments',
       );
     }
 

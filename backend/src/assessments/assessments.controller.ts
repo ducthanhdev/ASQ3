@@ -61,7 +61,7 @@ export class AssessmentsController {
   }
 
   @Patch(':id/review')
-  @Roles('SPECIALIST', 'ADMIN')
+  @Roles('SPECIALIST')
   review(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: ReviewAssessmentDto,
