@@ -158,17 +158,30 @@ export class QuestionnaireService {
     const versions = await this.prisma.questionnaireVersion.findMany({
       where: { questionnaireId: id },
       include: {
-        assessments: { take: 1 },
-        ocrResults: { take: 1 },
+        assessments: true,
+        ocrResults: true,
       },
     });
 
-    const hasAssessments = versions.some((v) => v.assessments.length > 0);
-    const hasOcrResults = versions.some((v) => v.ocrResults.length > 0);
+    const totalAssessments = versions.reduce(
+      (sum, v) => sum + v.assessments.length,
+      0,
+    );
+    const totalOcrResults = versions.reduce(
+      (sum, v) => sum + v.ocrResults.length,
+      0,
+    );
 
-    if (hasAssessments || hasOcrResults) {
+    if (totalAssessments > 0 || totalOcrResults > 0) {
+      const details: string[] = [];
+      if (totalAssessments > 0) {
+        details.push(`${totalAssessments} assessment(s)`);
+      }
+      if (totalOcrResults > 0) {
+        details.push(`${totalOcrResults} OCR result(s)`);
+      }
       throw new BadRequestException(
-        'Cannot delete questionnaire that has been used in assessments or OCR results',
+        `Cannot delete questionnaire that has been used in ${details.join(' and ')}. Please delete related data first.`,
       );
     }
 
