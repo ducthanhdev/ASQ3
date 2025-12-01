@@ -30,3 +30,26 @@ export function computeAdjustedAge(
 
   return months;
 }
+
+export function computeAdjustedAgeWithDays(
+  birthDate: Date,
+  assessmentDate: Date = new Date(),
+  prematureWeeks: number = 0,
+): { months: number; days: number } {
+  const chronologicalDays = Math.floor(
+    (assessmentDate.getTime() - birthDate.getTime()) / MILLISECONDS_PER_DAY,
+  );
+  const adjustedDays = chronologicalDays - prematureWeeks * DAYS_PER_WEEK;
+  
+  let months = Math.floor(adjustedDays / DAYS_PER_MONTH);
+  const days = adjustedDays % DAYS_PER_MONTH;
+
+  if (months < 0) {
+    months = 0;
+  }
+  if (months > MAX_ADJUSTED_AGE_MONTHS) {
+    months = MAX_ADJUSTED_AGE_MONTHS;
+  }
+
+  return { months, days };
+}

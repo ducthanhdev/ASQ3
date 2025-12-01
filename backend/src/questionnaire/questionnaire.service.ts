@@ -9,7 +9,7 @@ import { UpdateQuestionnaireDto } from './dto/update-questionnaire.dto';
 import { CreateManualQuestionnaireDto } from './dto/create-manual-questionnaire.dto';
 import { ImportJsonQuestionnaireDto } from './dto/import-json-questionnaire.dto';
 import { CreateVersionDto } from './dto/create-version.dto';
-import { computeAdjustedAge } from '../common/utils/age.util';
+import { computeAdjustedAge, computeAdjustedAgeWithDays } from '../common/utils/age.util';
 
 @Injectable()
 export class QuestionnaireService {
@@ -189,17 +189,13 @@ export class QuestionnaireService {
     });
     if (!child) throw new NotFoundException('Child not found');
 
-    const ageMonths = computeAdjustedAge(
+    const { months: ageMonths, days: ageDays } = computeAdjustedAgeWithDays(
       child.birthDate,
       new Date(),
       child.prematureWeeks,
     );
 
-    const questionnaire = await this.prisma.questionnaire.findFirst({
-      where: {
-        minMonth: { lte: ageMonths },
-        maxMonth: { gte: ageMonths },
-      },
+    const allQuestionnaires = await this.prisma.questionnaire.findMany({
       include: {
         versions: {
           orderBy: { id: 'desc' },
@@ -208,9 +204,24 @@ export class QuestionnaireService {
       },
     });
 
+    const matchingQuestionnaires = allQuestionnaires.filter((q) => {
+      const minDay = q.minDay ?? 0;
+      const maxDay = q.maxDay ?? 0;
+
+      const minTotalDays = q.minMonth * 30 + minDay;
+      const maxTotalDays = q.maxMonth * 30 + maxDay;
+      const childTotalDays = ageMonths * 30 + ageDays;
+
+      return childTotalDays >= minTotalDays && childTotalDays <= maxTotalDays;
+    });
+
+    const questionnaire = matchingQuestionnaires.find(
+      (q) => q.versions && q.versions.length > 0,
+    );
+
     if (!questionnaire || !questionnaire.versions[0]) {
       throw new NotFoundException(
-        `No questionnaire found for age ${ageMonths} months`,
+        `No questionnaire found for age ${ageMonths} months ${ageDays} days`,
       );
     }
 
@@ -219,6 +230,7 @@ export class QuestionnaireService {
         id: child.id,
         fullName: child.fullName,
         ageMonths,
+        ageDays,
         birthDate: child.birthDate,
       },
       questionnaire,
