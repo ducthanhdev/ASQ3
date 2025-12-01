@@ -124,6 +124,36 @@ export class QuestionnaireService {
     });
   }
 
+  async removeVersion(versionId: number) {
+    const version = await this.prisma.questionnaireVersion.findUnique({
+      where: { id: versionId },
+      include: {
+        assessments: { take: 1 },
+        ocrResults: { take: 1 },
+      },
+    });
+
+    if (!version) {
+      throw new NotFoundException('Questionnaire version not found');
+    }
+
+    if (version.assessments.length > 0) {
+      throw new BadRequestException(
+        'Cannot delete version that has been used in assessments',
+      );
+    }
+
+    if (version.ocrResults.length > 0) {
+      throw new BadRequestException(
+        'Cannot delete version that has been used in OCR results',
+      );
+    }
+
+    return this.prisma.questionnaireVersion.delete({
+      where: { id: versionId },
+    });
+  }
+
   async remove(id: number) {
     const versions = await this.prisma.questionnaireVersion.findMany({
       where: { questionnaireId: id },

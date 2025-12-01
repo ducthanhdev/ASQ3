@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../api/client";
+import { useAuth } from "../contexts/AuthContext";
+import { toast } from "sonner";
 
 interface ChildFormData {
   firstName: string;
@@ -18,6 +20,7 @@ interface ChildFormData {
 export default function ChildForm() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { hasRole } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<ChildFormData>({
     firstName: "",
@@ -59,12 +62,21 @@ export default function ChildForm() {
     try {
       if (id) {
         await api.put(`/children/${id}`, formData);
+        toast.success("Cập nhật thông tin trẻ thành công!");
+        navigate(`/children/${id}`);
       } else {
-        await api.post("/children", formData);
+        const response = await api.post("/children", formData);
+        const childId = response.data.id;
+        toast.success("Thêm trẻ thành công!");
+        
+        if (hasRole("PARENT")) {
+          navigate("/my-children");
+        } else {
+          navigate(`/children/${childId}`);
+        }
       }
-      window.location.href = `/children/${id}`;
-    } catch (err) {
-      alert("Failed to save child");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Không thể lưu thông tin trẻ");
     } finally {
       setLoading(false);
     }

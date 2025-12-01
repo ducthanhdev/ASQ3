@@ -17,6 +17,7 @@ export default function AdminUsers() {
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState<string>("ALL");
   const [updatingRole, setUpdatingRole] = useState<number | null>(null);
+  const [resettingPassword, setResettingPassword] = useState<number | null>(null);
 
   const loadUsers = () => {
     api.get("/users")
@@ -38,6 +39,19 @@ export default function AdminUsers() {
       toast.error(err.response?.data?.message || "Failed to update role");
     } finally {
       setUpdatingRole(null);
+    }
+  };
+
+  const handleResetPassword = async (id: number, username: string) => {
+    if (!confirm(`Reset password for ${username} to "123456"? User will be required to change password on next login.`)) return;
+    setResettingPassword(id);
+    try {
+      await api.patch(`/users/${id}/reset-password`);
+      toast.success("Password reset to 123456 successfully");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to reset password");
+    } finally {
+      setResettingPassword(null);
     }
   };
 
@@ -189,12 +203,21 @@ export default function AdminUsers() {
                     {new Date(user.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => handleDelete(user.id, user.username)}
-                      className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded transition"
-                    >
-                      Delete
-                    </button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => handleResetPassword(user.id, user.username)}
+                        disabled={resettingPassword === user.id}
+                        className="px-3 py-1 text-sm text-orange-600 hover:bg-orange-50 rounded transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {resettingPassword === user.id ? "Resetting..." : "Reset Password"}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(user.id, user.username)}
+                        className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded transition"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

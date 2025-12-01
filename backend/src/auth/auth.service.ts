@@ -54,12 +54,20 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    const defaultPassword = this.config.get<string>('DEFAULT_PASSWORD', '123456');
+    const isDefaultPassword = await bcrypt.compare(defaultPassword, user.passwordHash);
+
     await this.prisma.user.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
     });
 
-    return this.generateTokens(user);
+    const tokens = await this.generateTokens(user);
+
+    return {
+      ...tokens,
+      requiresPasswordChange: isDefaultPassword,
+    };
   }
 
   async refreshToken(refreshToken: string) {
@@ -112,6 +120,30 @@ export class AuthService {
     }
 
     return user;
+  }
+
+  async changePassword(userId: number, newPassword: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const defaultPassword = this.config.get<string>('DEFAULT_PASSWORD', '123456');
+    if (newPassword === defaultPassword) {
+      throw new ConflictException('New password cannot be the default password');
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+
+    return { message: 'Password changed successfully' };
   }
 
   private async generateTokens(user: any) {

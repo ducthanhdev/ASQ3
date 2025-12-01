@@ -52,6 +52,11 @@ export class UsersController {
     return this.usersService.updateRole(id, dto.role);
   }
 
+  @Patch(':id/reset-password')
+  resetPassword(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.resetPassword(id);
+  }
+
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.remove(id);

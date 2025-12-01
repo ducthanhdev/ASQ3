@@ -93,6 +93,12 @@ export class QuestionnaireController {
     return this.questionnaireService.update(id, dto);
   }
 
+  @Delete('versions/:id')
+  @Roles('ADMIN')
+  removeVersion(@Param('id', ParseIntPipe) id: number) {
+    return this.questionnaireService.removeVersion(id);
+  }
+
   @Delete(':id')
   @Roles('ADMIN')
   remove(@Param('id', ParseIntPipe) id: number) {

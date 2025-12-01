@@ -13,11 +13,12 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<{ requiresPasswordChange?: boolean }>;
   register: (username: string, password: string, email?: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
   hasRole: (roles: Role | Role[]) => boolean;
+  changePassword: (newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -57,6 +58,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem("user", JSON.stringify(data.user));
     
     setUser(data.user);
+    
+    return {
+      requiresPasswordChange: data.requiresPasswordChange || false,
+    };
+  };
+
+  const changePassword = async (newPassword: string) => {
+    await api.post("/auth/change-password", { newPassword });
   };
 
   const register = async (username: string, password: string, email?: string) => {
@@ -97,6 +106,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       logout,
       isAuthenticated: !!user,
       hasRole,
+      changePassword,
     }}>
       {children}
     </AuthContext.Provider>

@@ -42,12 +42,31 @@ export default function QuestionnaireEdit() {
     loadQuestionnaire();
   }, [id]);
 
+  const incrementVersion = (currentVersion: string): string => {
+    const matchWithMinor = currentVersion.match(/^v?(\d+)\.(\d+)$/);
+    if (matchWithMinor) {
+      const major = parseInt(matchWithMinor[1]);
+      const minor = parseInt(matchWithMinor[2]);
+      return `v${major}.${minor + 1}`;
+    }
+    
+    const matchMajorOnly = currentVersion.match(/^v?(\d+)$/);
+    if (matchMajorOnly) {
+      const major = parseInt(matchMajorOnly[1]);
+      return `v${major + 1}.0`;
+    }
+    
+    return `v1.0`;
+  };
+
   const loadQuestionnaire = async () => {
     try {
       const res = await api.get(`/questionnaires/${id}`);
       const q = res.data;
       const latestVersion = q.versions[0];
       const structure = latestVersion.structureJson;
+
+      const newVersion = incrementVersion(latestVersion.version);
 
       setFormData({
         code: q.code,
@@ -56,7 +75,7 @@ export default function QuestionnaireEdit() {
         maxMonth: q.maxMonth,
         language: q.language,
         description: structure.metadata?.description || "",
-        version: latestVersion.version,
+        version: newVersion,
         domains: structure.domains.map((d: any) => ({
           key: d.key,
           title: d.title,
@@ -257,13 +276,17 @@ export default function QuestionnaireEdit() {
                     <Input id="code" value={formData.code} disabled className="bg-gray-100" />
                   </div>
                   <div>
-                    <Label htmlFor="version">New Version</Label>
+                    <Label htmlFor="version">New Version (Auto-incremented)</Label>
                     <Input
                       id="version"
                       value={formData.version}
                       onChange={(e) => updateMetadata("version", e.target.value)}
                       placeholder="e.g., v1.1"
+                      className="bg-blue-50 font-semibold"
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Version tự động tăng từ version hiện tại
+                    </p>
                   </div>
                 </div>
                 <div>

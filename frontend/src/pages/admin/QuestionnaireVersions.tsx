@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../../api/client";
-import { ArrowLeft, Calendar } from "lucide-react";
+import { ArrowLeft, Calendar, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { toast } from "sonner";
 
 interface QuestionnaireVersion {
   id: number;
@@ -23,6 +24,7 @@ export default function QuestionnaireVersions() {
   const navigate = useNavigate();
   const [questionnaire, setQuestionnaire] = useState<Questionnaire | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deletingVersionId, setDeletingVersionId] = useState<number | null>(null);
 
   useEffect(() => {
     loadVersions();
@@ -37,6 +39,23 @@ export default function QuestionnaireVersions() {
       console.error("Failed to load versions:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteVersion = async (versionId: number) => {
+    if (!confirm("Bạn có chắc chắn muốn xóa version này? Hành động này không thể hoàn tác.")) {
+      return;
+    }
+
+    setDeletingVersionId(versionId);
+    try {
+      await api.delete(`/questionnaires/versions/${versionId}`);
+      toast.success("Đã xóa version thành công!");
+      loadVersions();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Không thể xóa version");
+    } finally {
+      setDeletingVersionId(null);
     }
   };
 
@@ -99,6 +118,14 @@ export default function QuestionnaireVersions() {
                     className="px-4 py-2 bg-blue-500 text-white text-sm font-semibold rounded-lg hover:bg-blue-600 transition-colors"
                   >
                     View Details
+                  </button>
+                  <button
+                    onClick={() => handleDeleteVersion(version.id)}
+                    disabled={deletingVersionId === version.id}
+                    className="px-4 py-2 bg-red-500 text-white text-sm font-semibold rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    {deletingVersionId === version.id ? "Đang xóa..." : "Xóa"}
                   </button>
                 </div>
               </CardContent>

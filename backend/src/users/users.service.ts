@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -27,7 +28,10 @@ const USER_SELECT_FIELDS_NO_LOGIN = {
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private config: ConfigService,
+  ) {}
 
   findAll() {
     return this.prisma.user.findMany({
@@ -96,6 +100,20 @@ export class UsersService {
     return this.prisma.user.update({
       where: { id },
       data: { role: role as any },
+      select: USER_SELECT_FIELDS_NO_LOGIN,
+    });
+  }
+
+  async resetPassword(id: number) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException();
+
+    const defaultPassword = this.config.get<string>('DEFAULT_PASSWORD', '123456');
+    const passwordHash = await bcrypt.hash(defaultPassword, 10);
+
+    return this.prisma.user.update({
+      where: { id },
+      data: { passwordHash },
       select: USER_SELECT_FIELDS_NO_LOGIN,
     });
   }

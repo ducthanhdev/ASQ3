@@ -30,6 +30,7 @@ JWT_REFRESH_EXPIRES_IN="7d"
 FRONTEND_URL="http://localhost:5173"
 PORT=3000
 OCR_SERVICE_URL="http://localhost:8000"
+DEFAULT_PASSWORD="123456"
 ```
 
 ### 4. Database migration
