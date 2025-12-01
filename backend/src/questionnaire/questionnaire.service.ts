@@ -128,8 +128,8 @@ export class QuestionnaireService {
     const version = await this.prisma.questionnaireVersion.findUnique({
       where: { id: versionId },
       include: {
-        assessments: { take: 1 },
-        ocrResults: { take: 1 },
+        assessments: true,
+        ocrResults: true,
       },
     });
 
@@ -137,15 +137,19 @@ export class QuestionnaireService {
       throw new NotFoundException('Questionnaire version not found');
     }
 
-    if (version.assessments.length > 0) {
-      throw new BadRequestException(
-        'Cannot delete version that has been used in assessments',
-      );
-    }
+    const totalAssessments = version.assessments.length;
+    const totalOcrResults = version.ocrResults.length;
 
-    if (version.ocrResults.length > 0) {
+    if (totalAssessments > 0 || totalOcrResults > 0) {
+      const details: string[] = [];
+      if (totalAssessments > 0) {
+        details.push(`${totalAssessments} assessment(s)`);
+      }
+      if (totalOcrResults > 0) {
+        details.push(`${totalOcrResults} OCR result(s)`);
+      }
       throw new BadRequestException(
-        'Cannot delete version that has been used in OCR results',
+        `Cannot delete version that has been used in ${details.join(' and ')}. Please delete related data first.`,
       );
     }
 
