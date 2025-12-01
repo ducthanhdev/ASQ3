@@ -15,7 +15,9 @@ interface Questionnaire {
   code: string;
   title: string;
   minMonth: number;
+  minDay?: number;
   maxMonth: number;
+  maxDay?: number;
   language: string;
   createdAt: string;
   versions: QuestionnaireVersion[];
@@ -129,7 +131,7 @@ export default function AdminQuestionnaires() {
                 <CardContent className="space-y-3">
                   <div className="flex items-center text-sm text-gray-600">
                     <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                    Age range: {q.minMonth}-{q.maxMonth} months
+                    Age range: {q.minMonth} tháng {q.minDay ?? 0} ngày - {q.maxMonth} tháng {q.maxDay ?? 0} ngày
                   </div>
                   <div className="flex items-center text-sm text-gray-600">
                     <Languages className="w-4 h-4 mr-2 text-gray-400" />

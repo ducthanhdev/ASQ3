@@ -1,0 +1,260 @@
+{
+  "code": "ASQ3_6M",
+  "title": "ASQ-3: 6 tháng tuổi",
+  "minMonth": 5,
+  "minDay": 0,
+  "maxMonth": 6,
+  "maxDay": 30,
+  "language": "vi",
+  "version": "v1.0",
+  "structure": {
+    "metadata": {
+      "code": "ASQ3_6M",
+      "title": "ASQ-3: 6 tháng tuổi",
+      "min_month": 5,
+      "min_day": 0,
+      "max_month": 6,
+      "max_day": 30,
+      "language": "vi",
+      "version": "v1.0"
+    },
+    "domains": [
+      {
+        "key": "communication",
+        "title": "Giao tiếp",
+        "cutoff_score": 29.65,
+        "questions": [
+          {
+            "id": "communication_q1",
+            "text": "Trẻ đã biết kêu ré lên chưa?",
+            "sort_order": 1
+          },
+          {
+            "id": "communication_q2",
+            "text": "Khi chơi với âm thanh, trẻ có làu bàu, lẩm bẩm hoặc tạo các âm trầm khác?",
+            "sort_order": 2
+          },
+          {
+            "id": "communication_q3",
+            "text": "Nếu anh/chị gọi trẻ khi chưa xuất hiện, trẻ có nhìn theo hướng giọng nói không?",
+            "sort_order": 3
+          },
+          {
+            "id": "communication_q4",
+            "text": "Khi có âm thanh lớn, trẻ có quay nhìn xem âm thanh từ đâu ra không?",
+            "sort_order": 4
+          },
+          {
+            "id": "communication_q5",
+            "text": "Trẻ có tạo âm thanh như \"da\", \"ga\", \"ka\", \"ba\"?",
+            "sort_order": 5
+          },
+          {
+            "id": "communication_q6",
+            "text": "Nếu anh/chị bắt chước âm thanh trẻ tạo ra, trẻ có lặp lại âm thanh đó không?",
+            "sort_order": 6
+          }
+        ]
+      },
+      {
+        "key": "gross_motor",
+        "title": "Vận động thô",
+        "cutoff_score": 22.25,
+        "questions": [
+          {
+            "id": "gross_motor_q1",
+            "text": "Khi trẻ nằm ngửa, trẻ có nâng chân cao để nhìn thấy bàn chân không?",
+            "sort_order": 1
+          },
+          {
+            "id": "gross_motor_q2",
+            "text": "Khi nằm sấp, trẻ có duỗi hai tay và tự đẩy phần ngực lên khỏi mặt sàn?",
+            "sort_order": 2
+          },
+          {
+            "id": "gross_motor_q3",
+            "text": "Trẻ có lật từ nằm ngửa sang nằm sấp không?",
+            "sort_order": 3
+          },
+          {
+            "id": "gross_motor_q4",
+            "text": "Khi đặt trẻ lên sàn, trẻ có chống tay để đứng lên?",
+            "sort_order": 4
+          },
+          {
+            "id": "gross_motor_q5",
+            "text": "Nếu hai tay anh/chị giúp giữ thăng bằng, trẻ có đứng bằng sức nặng bản thân?",
+            "sort_order": 5
+          },
+          {
+            "id": "gross_motor_q6",
+            "text": "Trẻ có bò bằng cách thẳng tay và đầu gối?",
+            "sort_order": 6
+          }
+        ]
+      },
+      {
+        "key": "fine_motor",
+        "title": "Vận động tinh",
+        "cutoff_score": 25.14,
+        "questions": [
+          {
+            "id": "fine_motor_q1",
+            "text": "Trẻ có nắm đồ chơi và nhìn, vẫy hoặc nhai khoảng 1 phút?",
+            "sort_order": 1
+          },
+          {
+            "id": "fine_motor_q2",
+            "text": "Trẻ có với hoặc nắm đồ chơi bằng cả hai tay cùng lúc?",
+            "sort_order": 2
+          },
+          {
+            "id": "fine_motor_q3",
+            "text": "Trẻ có với vụn bánh mì/bột ngũ cốc và chạm bằng đầu ngón tay?",
+            "sort_order": 3
+          },
+          {
+            "id": "fine_motor_q4",
+            "text": "Trẻ có nhặt đồ chơi nhỏ và nắm trong lòng bàn tay?",
+            "sort_order": 4
+          },
+          {
+            "id": "fine_motor_q5",
+            "text": "Trẻ có cố gắng nhặt vụn bánh mì/bột ngũ cốc bằng ngón tay cái và ngón khác?",
+            "sort_order": 5
+          },
+          {
+            "id": "fine_motor_q6",
+            "text": "Trẻ có nhặt đồ chơi nhỏ bằng một tay?",
+            "sort_order": 6
+          }
+        ]
+      },
+      {
+        "key": "problem_solving",
+        "title": "Giải quyết vấn đề",
+        "cutoff_score": 27.42,
+        "questions": [
+          {
+            "id": "problem_solving_q1",
+            "text": "Khi trước mặt trẻ có đồ chơi, trẻ có với bằng cả hai tay?",
+            "sort_order": 1
+          },
+          {
+            "id": "problem_solving_q2",
+            "text": "Khi nằm ngửa, trẻ có quay đầu tìm món đồ chơi đã làm rơi?",
+            "sort_order": 2
+          },
+          {
+            "id": "problem_solving_q3",
+            "text": "Khi nằm ngửa, trẻ có cố gắng lấy lại món đồ chơi trẻ nhìn thấy?",
+            "sort_order": 3
+          },
+          {
+            "id": "problem_solving_q4",
+            "text": "Trẻ có nhặt đồ chơi và đưa vào miệng?",
+            "sort_order": 4
+          },
+          {
+            "id": "problem_solving_q5",
+            "text": "Trẻ có chuyền đồ chơi từ tay này sang tay kia?",
+            "sort_order": 5
+          },
+          {
+            "id": "problem_solving_q6",
+            "text": "Trẻ có đập đồ chơi lên xuống?",
+            "sort_order": 6
+          }
+        ]
+      },
+      {
+        "key": "personal_social",
+        "title": "Cá nhân – Xã hội",
+        "cutoff_score": 25.34,
+        "questions": [
+          {
+            "id": "personal_social_q1",
+            "text": "Khi đứng trước gương, trẻ có tự cười hoặc thủ thỉ không?",
+            "sort_order": 1
+          },
+          {
+            "id": "personal_social_q2",
+            "text": "Khi gặp người lạ, trẻ có phản ứng khác so với khi gặp người thân?",
+            "sort_order": 2
+          },
+          {
+            "id": "personal_social_q3",
+            "text": "Khi nằm ngửa, trẻ có chơi bằng cách nắm chân?",
+            "sort_order": 3
+          },
+          {
+            "id": "personal_social_q4",
+            "text": "Khi đứng trước gương lớn, trẻ có với và vỗ vào gương?",
+            "sort_order": 4
+          },
+          {
+            "id": "personal_social_q5",
+            "text": "Khi nằm ngửa, trẻ có tự cho chân vào miệng?",
+            "sort_order": 5
+          },
+          {
+            "id": "personal_social_q6",
+            "text": "Trẻ có cố gắng lấy món đồ chơi ngoài tầm với?",
+            "sort_order": 6
+          }
+        ]
+      }
+    ],
+    "overall_section": {
+      "overall_q1": {
+        "id": "overall_q1",
+        "text": "Trẻ có sử dụng tốt cả hai tay và hai chân như nhau không?",
+        "type": "yes_no_explain"
+      },
+      "overall_q2": {
+        "id": "overall_q2",
+        "text": "Khi giúp trẻ đứng, bàn chân trẻ có đặt phẳng phần lớn thời gian?",
+        "type": "yes_no_explain"
+      },
+      "overall_q3": {
+        "id": "overall_q3",
+        "text": "Trẻ có quá trầm lặng hoặc ít gây tiếng ồn không?",
+        "type": "yes_no_explain"
+      },
+      "overall_q4": {
+        "id": "overall_q4",
+        "text": "Gia đình có tiền sử khiếm thính từ nhỏ không?",
+        "type": "yes_no_explain"
+      },
+      "overall_q5": {
+        "id": "overall_q5",
+        "text": "Bạn có lo lắng về thị lực của trẻ không?",
+        "type": "yes_no_explain"
+      },
+      "overall_q6": {
+        "id": "overall_q6",
+        "text": "Trẻ có vấn đề sức khỏe trong vài tháng qua không?",
+        "type": "yes_no_explain"
+      },
+      "overall_q7": {
+        "id": "overall_q7",
+        "text": "Bạn có lo lắng về hành vi của trẻ không?",
+        "type": "yes_no_explain"
+      },
+      "overall_q8": {
+        "id": "overall_q8",
+        "text": "Bạn còn lo ngại nào khác về trẻ không?",
+        "type": "yes_no_explain"
+      }
+    },
+    "rules": {
+      "score_values": {
+        "Y": 10,
+        "S": 5,
+        "N": 0
+      },
+      "monitor_margin": 2
+    }
+  }
+}
+

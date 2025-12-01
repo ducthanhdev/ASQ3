@@ -1,0 +1,260 @@
+{
+  "code": "ASQ3_2M",
+  "title": "ASQ-3: 2 tháng tuổi",
+  "minMonth": 1,
+  "minDay": 0,
+  "maxMonth": 2,
+  "maxDay": 30,
+  "language": "vi",
+  "version": "v1.0",
+  "structure": {
+    "metadata": {
+      "code": "ASQ3_2M",
+      "title": "ASQ-3: 2 tháng tuổi",
+      "min_month": 1,
+      "min_day": 0,
+      "max_month": 2,
+      "max_day": 30,
+      "language": "vi",
+      "version": "v1.0"
+    },
+    "domains": [
+      {
+        "key": "communication",
+        "title": "Giao tiếp",
+        "cutoff_score": 25.0,
+        "questions": [
+          {
+            "id": "communication_q1",
+            "text": "Trẻ có đôi khi phát âm Ê A hay ríu rít?",
+            "sort_order": 1
+          },
+          {
+            "id": "communication_q2",
+            "text": "Trẻ có phát ra những âm thanh như \"ooo\", \"oah\", \"aah\"?",
+            "sort_order": 2
+          },
+          {
+            "id": "communication_q3",
+            "text": "Trẻ có phát âm đáp lại khi anh/chị nói chuyện không?",
+            "sort_order": 3
+          },
+          {
+            "id": "communication_q4",
+            "text": "Trẻ có cười khi anh/chị nói chuyện?",
+            "sort_order": 4
+          },
+          {
+            "id": "communication_q5",
+            "text": "Trẻ có cười tủm tỉm nhẹ?",
+            "sort_order": 5
+          },
+          {
+            "id": "communication_q6",
+            "text": "Sau khi rời đi, trẻ có cười khi anh/chị quay lại?",
+            "sort_order": 6
+          }
+        ]
+      },
+      {
+        "key": "gross_motor",
+        "title": "Vận động thô",
+        "cutoff_score": 20.0,
+        "questions": [
+          {
+            "id": "gross_motor_q1",
+            "text": "Trẻ có cử động chân tay khi nằm ngửa?",
+            "sort_order": 1
+          },
+          {
+            "id": "gross_motor_q2",
+            "text": "Trẻ có nghiêng đầu khi nằm sấp?",
+            "sort_order": 2
+          },
+          {
+            "id": "gross_motor_q3",
+            "text": "Trẻ có ngóc đầu lên vài giây?",
+            "sort_order": 3
+          },
+          {
+            "id": "gross_motor_q4",
+            "text": "Trẻ có đạp chân khi nằm ngửa?",
+            "sort_order": 4
+          },
+          {
+            "id": "gross_motor_q5",
+            "text": "Trẻ có quay đầu qua lại?",
+            "sort_order": 5
+          },
+          {
+            "id": "gross_motor_q6",
+            "text": "Trẻ có hạ đầu xuống nhẹ nhàng sau khi ngóc?",
+            "sort_order": 6
+          }
+        ]
+      },
+      {
+        "key": "fine_motor",
+        "title": "Vận động tinh",
+        "cutoff_score": 22.0,
+        "questions": [
+          {
+            "id": "fine_motor_q1",
+            "text": "Tay trẻ có nắm chặt khi tỉnh?",
+            "sort_order": 1
+          },
+          {
+            "id": "fine_motor_q2",
+            "text": "Trẻ có nắm tay khi chạm vào lòng bàn tay?",
+            "sort_order": 2
+          },
+          {
+            "id": "fine_motor_q3",
+            "text": "Trẻ có giữ đồ chơi một lúc khi đặt vào tay?",
+            "sort_order": 3
+          },
+          {
+            "id": "fine_motor_q4",
+            "text": "Trẻ có tự lấy tay chạm mặt?",
+            "sort_order": 4
+          },
+          {
+            "id": "fine_motor_q5",
+            "text": "Trẻ có đưa tay lên miệng?",
+            "sort_order": 5
+          },
+          {
+            "id": "fine_motor_q6",
+            "text": "Trẻ có mở tay khi thư giãn?",
+            "sort_order": 6
+          }
+        ]
+      },
+      {
+        "key": "problem_solving",
+        "title": "Giải quyết vấn đề",
+        "cutoff_score": 24.0,
+        "questions": [
+          {
+            "id": "problem_solving_q1",
+            "text": "Trẻ có nhìn vào mặt anh/chị khi nằm ngửa?",
+            "sort_order": 1
+          },
+          {
+            "id": "problem_solving_q2",
+            "text": "Trẻ có nhìn theo đồ chơi di chuyển từ bên này sang bên kia?",
+            "sort_order": 2
+          },
+          {
+            "id": "problem_solving_q3",
+            "text": "Trẻ có nhìn vào đồ chơi khi đặt trước mặt?",
+            "sort_order": 3
+          },
+          {
+            "id": "problem_solving_q4",
+            "text": "Trẻ có nhìn vào tay của mình?",
+            "sort_order": 4
+          },
+          {
+            "id": "problem_solving_q5",
+            "text": "Trẻ có nhìn vào đồ chơi khi đặt cách mặt khoảng 30cm?",
+            "sort_order": 5
+          },
+          {
+            "id": "problem_solving_q6",
+            "text": "Trẻ có nhìn theo đồ chơi khi di chuyển từ trên xuống dưới?",
+            "sort_order": 6
+          }
+        ]
+      },
+      {
+        "key": "personal_social",
+        "title": "Cá nhân – Xã hội",
+        "cutoff_score": 23.0,
+        "questions": [
+          {
+            "id": "personal_social_q1",
+            "text": "Trẻ có nhìn vào mặt anh/chị khi nằm ngửa?",
+            "sort_order": 1
+          },
+          {
+            "id": "personal_social_q2",
+            "text": "Trẻ có cười khi anh/chị nói chuyện?",
+            "sort_order": 2
+          },
+          {
+            "id": "personal_social_q3",
+            "text": "Trẻ có im lặng khi nghe giọng nói quen thuộc?",
+            "sort_order": 3
+          },
+          {
+            "id": "personal_social_q4",
+            "text": "Trẻ có phản ứng khác với giọng nói quen thuộc và giọng lạ?",
+            "sort_order": 4
+          },
+          {
+            "id": "personal_social_q5",
+            "text": "Trẻ có nhìn vào mặt anh/chị khi được bế?",
+            "sort_order": 5
+          },
+          {
+            "id": "personal_social_q6",
+            "text": "Trẻ có cười khi nhìn thấy mặt anh/chị?",
+            "sort_order": 6
+          }
+        ]
+      }
+    ],
+    "overall_section": {
+      "overall_q1": {
+        "id": "overall_q1",
+        "text": "Trẻ có sử dụng tốt cả hai tay và hai chân như nhau không?",
+        "type": "yes_no_explain"
+      },
+      "overall_q2": {
+        "id": "overall_q2",
+        "text": "Khi giúp trẻ đứng, bàn chân trẻ có đặt phẳng phần lớn thời gian?",
+        "type": "yes_no_explain"
+      },
+      "overall_q3": {
+        "id": "overall_q3",
+        "text": "Trẻ có quá trầm lặng hoặc ít gây tiếng ồn không?",
+        "type": "yes_no_explain"
+      },
+      "overall_q4": {
+        "id": "overall_q4",
+        "text": "Gia đình có tiền sử khiếm thính từ nhỏ không?",
+        "type": "yes_no_explain"
+      },
+      "overall_q5": {
+        "id": "overall_q5",
+        "text": "Bạn có lo lắng về thị lực của trẻ không?",
+        "type": "yes_no_explain"
+      },
+      "overall_q6": {
+        "id": "overall_q6",
+        "text": "Trẻ có vấn đề sức khỏe trong vài tháng qua không?",
+        "type": "yes_no_explain"
+      },
+      "overall_q7": {
+        "id": "overall_q7",
+        "text": "Bạn có lo lắng về hành vi của trẻ không?",
+        "type": "yes_no_explain"
+      },
+      "overall_q8": {
+        "id": "overall_q8",
+        "text": "Bạn còn lo ngại nào khác về trẻ không?",
+        "type": "yes_no_explain"
+      }
+    },
+    "rules": {
+      "score_values": {
+        "Y": 10,
+        "S": 5,
+        "N": 0
+      },
+      "monitor_margin": 2
+    }
+  }
+}
+

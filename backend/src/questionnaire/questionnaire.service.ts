@@ -232,7 +232,9 @@ export class QuestionnaireService {
         code: dto.code,
         title: dto.title,
         minMonth: dto.minMonth,
+        minDay: dto.minDay ?? 0,
         maxMonth: dto.maxMonth,
+        maxDay: dto.maxDay ?? 0,
         language: dto.language,
       },
     });

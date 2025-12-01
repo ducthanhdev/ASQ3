@@ -57,7 +57,17 @@ export class CreateManualQuestionnaireDto {
 
   @IsInt()
   @Min(0)
+  @IsOptional()
+  minDay?: number;
+
+  @IsInt()
+  @Min(0)
   maxMonth: number;
+
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  maxDay?: number;
 
   @IsString()
   @IsNotEmpty()

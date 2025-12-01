@@ -15,7 +15,15 @@ export class CreateQuestionnaireDto {
 
   @IsInt()
   @Min(0)
+  minDay?: number;
+
+  @IsInt()
+  @Min(0)
   maxMonth: number;
+
+  @IsInt()
+  @Min(0)
+  maxDay?: number;
 
   @IsString()
   @IsNotEmpty()

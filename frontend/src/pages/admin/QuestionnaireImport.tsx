@@ -75,7 +75,9 @@ export default function QuestionnaireImport() {
           code: parsed.code,
           title: parsed.title,
           minMonth: parsed.minMonth,
+          minDay: parsed.minDay ?? 0,
           maxMonth: parsed.maxMonth,
+          maxDay: parsed.maxDay ?? 0,
           language: parsed.language,
           version: parsed.version || "v1.0",
           structure: parsed.structure
@@ -85,7 +87,9 @@ export default function QuestionnaireImport() {
           code: parsed.code,
           title: parsed.title,
           minMonth: parsed.minMonth,
+          minDay: parsed.minDay ?? 0,
           maxMonth: parsed.maxMonth,
+          maxDay: parsed.maxDay ?? 0,
           language: parsed.language,
           version: parsed.version || "v1.0",
           structure: parsed.structureJson
@@ -95,7 +99,9 @@ export default function QuestionnaireImport() {
           code: parsed.code || parsed.metadata.code,
           title: parsed.title || parsed.metadata.title,
           minMonth: parsed.minMonth || parsed.metadata.min_month,
+          minDay: parsed.minDay ?? parsed.metadata.min_day ?? 0,
           maxMonth: parsed.maxMonth || parsed.metadata.max_month,
+          maxDay: parsed.maxDay ?? parsed.metadata.max_day ?? 0,
           language: parsed.language || parsed.metadata.language,
           version: parsed.version || parsed.metadata.version || "v1.0",
           structure: {

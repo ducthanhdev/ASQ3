@@ -13,7 +13,17 @@ export class UpdateQuestionnaireDto {
   @IsInt()
   @IsOptional()
   @Min(0)
+  minDay?: number;
+
+  @IsInt()
+  @IsOptional()
+  @Min(0)
   maxMonth?: number;
+
+  @IsInt()
+  @IsOptional()
+  @Min(0)
+  maxDay?: number;
 
   @IsString()
   @IsOptional()

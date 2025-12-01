@@ -21,7 +21,9 @@ interface FormData {
   code: string;
   title: string;
   minMonth: number;
+  minDay: number;
   maxMonth: number;
+  maxDay: number;
   language: string;
   description: string;
   version: string;
@@ -71,8 +73,10 @@ export default function QuestionnaireEdit() {
       setFormData({
         code: q.code,
         title: q.title,
-        minMonth: q.minMonth,
-        maxMonth: q.maxMonth,
+        minMonth: q.minMonth || 0,
+        minDay: q.minDay ?? 0,
+        maxMonth: q.maxMonth || 0,
+        maxDay: q.maxDay ?? 0,
         language: q.language,
         description: structure.metadata?.description || "",
         version: newVersion,
@@ -175,7 +179,9 @@ export default function QuestionnaireEdit() {
       await api.put(`/questionnaires/${id}`, {
         title: formData.title,
         minMonth: formData.minMonth,
+        minDay: formData.minDay,
         maxMonth: formData.maxMonth,
+        maxDay: formData.maxDay,
         language: formData.language,
       });
 
@@ -298,23 +304,51 @@ export default function QuestionnaireEdit() {
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="minMonth">Min Month</Label>
-                    <Input
-                      id="minMonth"
-                      type="number"
-                      value={formData.minMonth}
-                      onChange={(e) => updateMetadata("minMonth", parseInt(e.target.value))}
-                    />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="minMonth">Min Month</Label>
+                      <Input
+                        id="minMonth"
+                        type="number"
+                        min="0"
+                        value={formData.minMonth}
+                        onChange={(e) => updateMetadata("minMonth", parseInt(e.target.value) || 0)}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="minDay">Min Day</Label>
+                      <Input
+                        id="minDay"
+                        type="number"
+                        min="0"
+                        max="30"
+                        value={formData.minDay}
+                        onChange={(e) => updateMetadata("minDay", parseInt(e.target.value) || 0)}
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor="maxMonth">Max Month</Label>
-                    <Input
-                      id="maxMonth"
-                      type="number"
-                      value={formData.maxMonth}
-                      onChange={(e) => updateMetadata("maxMonth", parseInt(e.target.value))}
-                    />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="maxMonth">Max Month</Label>
+                      <Input
+                        id="maxMonth"
+                        type="number"
+                        min="0"
+                        value={formData.maxMonth}
+                        onChange={(e) => updateMetadata("maxMonth", parseInt(e.target.value) || 0)}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="maxDay">Max Day</Label>
+                      <Input
+                        id="maxDay"
+                        type="number"
+                        min="0"
+                        max="30"
+                        value={formData.maxDay}
+                        onChange={(e) => updateMetadata("maxDay", parseInt(e.target.value) || 0)}
+                      />
+                    </div>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-6">
@@ -407,7 +441,7 @@ export default function QuestionnaireEdit() {
                   <div className="text-sm text-blue-800 space-y-1">
                     <div><strong>Code:</strong> {formData.code}</div>
                     <div><strong>Title:</strong> {formData.title}</div>
-                    <div><strong>Age Range:</strong> {formData.minMonth}-{formData.maxMonth} months</div>
+                    <div><strong>Age Range:</strong> {formData.minMonth} tháng {formData.minDay} ngày - {formData.maxMonth} tháng {formData.maxDay} ngày</div>
                     <div><strong>Language:</strong> {formData.language}</div>
                     <div><strong>Version:</strong> {formData.version}</div>
                   </div>

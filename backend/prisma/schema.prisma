@@ -83,7 +83,9 @@ model Questionnaire {
   code      String   @unique
   title     String
   minMonth  Int
+  minDay    Int      @default(0)
   maxMonth  Int
+  maxDay    Int      @default(0)
   language  String
   createdAt DateTime @default(now())
 
