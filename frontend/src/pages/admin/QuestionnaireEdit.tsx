@@ -65,10 +65,43 @@ export default function QuestionnaireEdit() {
     try {
       const res = await api.get(`/questionnaires/${id}`);
       const q = res.data;
+      
+      if (!q) {
+        setError("Questionnaire not found");
+        return;
+      }
+
+      if (!q.versions || q.versions.length === 0) {
+        setError("Questionnaire has no versions. Please create a version first.");
+        return;
+      }
+
       const latestVersion = q.versions[0];
+      
+      if (!latestVersion || !latestVersion.structureJson) {
+        setError("Questionnaire version structure is missing or invalid.");
+        return;
+      }
+
       const structure = latestVersion.structureJson;
 
+      if (!structure.domains || !Array.isArray(structure.domains)) {
+        setError("Questionnaire structure is invalid: domains are missing.");
+        return;
+      }
+
       const newVersion = incrementVersion(latestVersion.version);
+
+      let overallQuestions: any[] = [];
+      if (structure.overall_section) {
+        if (Array.isArray(structure.overall_section)) {
+          overallQuestions = structure.overall_section.map((q: any) => ({ text: q.text || "" }));
+        } else if (typeof structure.overall_section === 'object') {
+          overallQuestions = Object.values(structure.overall_section).map((q: any) => ({ 
+            text: (q && typeof q === 'object' && q.text) ? q.text : "" 
+          }));
+        }
+      }
 
       setFormData({
         code: q.code,
@@ -84,12 +117,19 @@ export default function QuestionnaireEdit() {
           key: d.key,
           title: d.title,
           cutoffScore: d.cutoff_score,
-          questions: d.questions.map((q: any) => ({ text: q.text })),
+          questions: (d.questions || []).map((q: any) => ({ text: q.text || "" })),
         })),
-        overallQuestions: (structure.overall_section || []).map((q: any) => ({ text: q.text })),
+        overallQuestions,
       });
-    } catch (err) {
-      setError("Failed to load questionnaire");
+    } catch (err: any) {
+      console.error("Error loading questionnaire:", err);
+      if (err.response?.status === 404) {
+        setError("Questionnaire not found");
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError("Failed to load questionnaire. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -217,10 +257,20 @@ export default function QuestionnaireEdit() {
     );
   }
 
-  if (!formData) {
+  if (error || !formData) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
-        <div className="text-lg font-semibold text-red-600">Questionnaire not found</div>
+        <div className="text-center">
+          <div className="text-lg font-semibold text-red-600 mb-4">
+            {error || "Questionnaire not found"}
+          </div>
+          <button
+            onClick={() => navigate(`/admin/questionnaires/${id}`)}
+            className="text-blue-600 hover:text-blue-700 underline"
+          >
+            Back to Questionnaire Details
+          </button>
+        </div>
       </div>
     );
   }

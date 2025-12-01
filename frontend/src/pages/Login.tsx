@@ -25,7 +25,7 @@ export default function Login() {
       if (result.requiresPasswordChange) {
         setShowChangePasswordModal(true);
       } else {
-        navigate("/");
+      navigate("/");
       }
     } catch (err: any) {
       setError(err.response?.data?.message || "Invalid credentials");
@@ -77,8 +77,8 @@ export default function Login() {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  Password
-                </label>
+                Password
+              </label>
                 <Link
                   to="/forgot-password"
                   className="text-sm text-blue-600 hover:text-blue-700 font-medium"
@@ -87,15 +87,15 @@ export default function Login() {
                 </Link>
               </div>
               <div className="relative">
-                <input
-                  id="password"
+              <input
+                id="password"
                   type={showPassword ? "text" : "password"}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-2.5 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter your password"
-                />
+                placeholder="Enter your password"
+              />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}

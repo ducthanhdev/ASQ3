@@ -212,13 +212,13 @@ export default function QuestionnaireForm() {
                 </div>
                 <div className="grid grid-cols-2 gap-6">
                   <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label htmlFor="minMonth">Min Month</Label>
-                      <Input
-                        id="minMonth"
-                        type="number"
+                  <div>
+                    <Label htmlFor="minMonth">Min Month</Label>
+                    <Input
+                      id="minMonth"
+                      type="number"
                         min="0"
-                        value={formData.minMonth}
+                      value={formData.minMonth}
                         onChange={(e) => updateMetadata("minMonth", parseInt(e.target.value) || 0)}
                       />
                     </div>
@@ -231,17 +231,17 @@ export default function QuestionnaireForm() {
                         max="30"
                         value={formData.minDay}
                         onChange={(e) => updateMetadata("minDay", parseInt(e.target.value) || 0)}
-                      />
+                    />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label htmlFor="maxMonth">Max Month</Label>
-                      <Input
-                        id="maxMonth"
-                        type="number"
+                  <div>
+                    <Label htmlFor="maxMonth">Max Month</Label>
+                    <Input
+                      id="maxMonth"
+                      type="number"
                         min="0"
-                        value={formData.maxMonth}
+                      value={formData.maxMonth}
                         onChange={(e) => updateMetadata("maxMonth", parseInt(e.target.value) || 0)}
                       />
                     </div>
@@ -254,7 +254,7 @@ export default function QuestionnaireForm() {
                         max="30"
                         value={formData.maxDay}
                         onChange={(e) => updateMetadata("maxDay", parseInt(e.target.value) || 0)}
-                      />
+                    />
                     </div>
                   </div>
                 </div>
