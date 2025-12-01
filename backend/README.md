@@ -42,6 +42,15 @@ npm run prisma:generate
 # Apply schema to database
 npx prisma db push
 
+# Chạy các migration SQL thủ công (nếu cần)
+# Kết nối vào database và chạy các file SQL trong thư mục prisma/migrations/
+# Ví dụ:
+# mysql -u user -p database < prisma/migrations/add_min_day_max_day.sql
+# mysql -u user -p database < prisma/migrations/add_file_data_to_file.sql
+# mysql -u user -p database < prisma/migrations/add_child_id_to_file.sql
+# mysql -u user -p database < prisma/migrations/add_review_workflow.sql
+# mysql -u user -p database < prisma/migrations/add_full_asq3_fields.sql
+
 # Seed database (tạo demo accounts và data)
 npm run prisma:seed
 ```
@@ -210,7 +219,7 @@ src/
 
 - **User**: id, username, email, passwordHash, role, tokenVersion, refreshToken, lastLoginAt
 - **Child**: id, parentId, fullName, birthDate, prematureWeeks, guardianName, guardianPhone
-- **Questionnaire**: id, code, title, minMonth, maxMonth, language
+- **Questionnaire**: id, code, title, minMonth, minDay, maxMonth, maxDay, language
 - **QuestionnaireVersion**: id, questionnaireId, version, structureJson
 - **Assessment**: id, childId, questionnaireVersionId, answersJson, scoresJson, method, scanFileId
 - **File**: id, uploaderId, childId, originalName, fileData (BLOB), mimeType, sizeBytes
