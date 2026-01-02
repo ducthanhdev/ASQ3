@@ -133,7 +133,17 @@ export default function AssessmentResult() {
   const answers = assessment.answersJson || {};
   const finalConclusion =
     assessment.finalConclusion || assessment.summaryResultJson?.finalConclusion || "NORMAL";
-  const overallSection = assessment.questionnaireVersion?.structureJson?.overall_section || [];
+  
+  // Handle overall_section as both object and array formats
+  const rawOverallSection = assessment.questionnaireVersion?.structureJson?.overall_section;
+  let overallSection: Array<{ id: string; text: string; type?: string }> = [];
+  if (rawOverallSection) {
+    if (Array.isArray(rawOverallSection)) {
+      overallSection = rawOverallSection;
+    } else if (typeof rawOverallSection === 'object') {
+      overallSection = Object.values(rawOverallSection);
+    }
+  }
 
   const domainTitles: Record<string, string> = {
     communication: "Giao tiếp",

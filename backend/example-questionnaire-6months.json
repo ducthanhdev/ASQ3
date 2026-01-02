@@ -23,6 +23,7 @@
         "key": "communication",
         "title": "Giao tiếp",
         "cutoff_score": 29.65,
+        "monitor_max": 38,
         "questions": [
           {
             "id": "communication_q1",
@@ -60,6 +61,7 @@
         "key": "gross_motor",
         "title": "Vận động thô",
         "cutoff_score": 22.25,
+        "monitor_max": 34,
         "questions": [
           {
             "id": "gross_motor_q1",
@@ -97,6 +99,7 @@
         "key": "fine_motor",
         "title": "Vận động tinh",
         "cutoff_score": 25.14,
+        "monitor_max": 37,
         "questions": [
           {
             "id": "fine_motor_q1",
@@ -133,7 +136,8 @@
       {
         "key": "problem_solving",
         "title": "Giải quyết vấn đề",
-        "cutoff_score": 27.42,
+        "cutoff_score": 27.72,
+        "monitor_max": 39,
         "questions": [
           {
             "id": "problem_solving_q1",
@@ -171,6 +175,7 @@
         "key": "personal_social",
         "title": "Cá nhân – Xã hội",
         "cutoff_score": 25.34,
+        "monitor_max": 37,
         "questions": [
           {
             "id": "personal_social_q1",
@@ -257,4 +262,3 @@
     }
   }
 }
-

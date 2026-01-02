@@ -233,22 +233,22 @@ export class AssessmentsService {
     structure: any,
     domainTotals: Record<string, number>,
   ) {
-    const monitorMargin = structure.rules?.monitor_margin || 2;
     const domainScores: Record<string, any> = {};
     const domainConclusions: Record<string, string> = {};
 
     for (const domain of structure.domains || []) {
       const total = domainTotals[domain.key] || 0;
       const cutoff = domain.cutoff_score;
+      const monitorMax = domain.monitor_max;
 
       let conclusion = 'NORMAL';
-      if (total < cutoff - monitorMargin) {
+      if (total <= cutoff) {
         conclusion = 'REFER';
-      } else if (total < cutoff) {
+      } else if (total <= monitorMax) {
         conclusion = 'MONITOR';
       }
 
-      domainScores[domain.key] = { total, cutoff, conclusion };
+      domainScores[domain.key] = { total, cutoff, monitorMax, conclusion };
       domainConclusions[domain.key] = conclusion;
     }
 

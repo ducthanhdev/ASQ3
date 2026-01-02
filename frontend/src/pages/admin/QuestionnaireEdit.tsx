@@ -14,6 +14,7 @@ interface Domain {
   key: string;
   title: string;
   cutoffScore: number;
+  monitorMax: number;
   questions: Question[];
 }
 
@@ -116,7 +117,8 @@ export default function QuestionnaireEdit() {
         domains: structure.domains.map((d: any) => ({
           key: d.key,
           title: d.title,
-          cutoffScore: d.cutoff_score,
+          cutoffScore: d.cutoff_score || 0,
+          monitorMax: d.monitor_max || 0,
           questions: (d.questions || []).map((q: any) => ({ text: q.text || "" })),
         })),
         overallQuestions,
@@ -198,6 +200,7 @@ export default function QuestionnaireEdit() {
             key: d.key,
             title: d.title,
             cutoff_score: d.cutoffScore,
+            monitor_max: d.monitorMax,
             questions: d.questions.map((q, idx) => ({
               id: `${d.key}_q${idx + 1}`,
               text: q.text,
@@ -423,15 +426,27 @@ export default function QuestionnaireEdit() {
                 {formData.domains.map((domain, domainIdx) => (
                   <div key={domainIdx} className="p-6 bg-gray-50 rounded-xl">
                     <h3 className="text-lg font-bold text-gray-800 mb-4">{domain.title}</h3>
-                    <div className="mb-4">
-                      <Label htmlFor={`cutoff-${domainIdx}`}>Cutoff Score</Label>
-                      <Input
-                        id={`cutoff-${domainIdx}`}
-                        type="number"
-                        step="0.01"
-                        value={domain.cutoffScore}
-                        onChange={(e) => updateDomain(domainIdx, "cutoffScore", parseFloat(e.target.value))}
-                      />
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <Label htmlFor={`cutoff-${domainIdx}`}>Cutoff Score (Điểm ngưỡng)</Label>
+                        <Input
+                          id={`cutoff-${domainIdx}`}
+                          type="number"
+                          step="0.01"
+                          value={domain.cutoffScore}
+                          onChange={(e) => updateDomain(domainIdx, "cutoffScore", parseFloat(e.target.value) || 0)}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`monitor-${domainIdx}`}>Monitor Max (Điểm theo dõi tối đa)</Label>
+                        <Input
+                          id={`monitor-${domainIdx}`}
+                          type="number"
+                          step="1"
+                          value={domain.monitorMax}
+                          onChange={(e) => updateDomain(domainIdx, "monitorMax", parseFloat(e.target.value) || 0)}
+                        />
+                      </div>
                     </div>
                     <div className="space-y-3">
                       {domain.questions.map((q, qIdx) => (

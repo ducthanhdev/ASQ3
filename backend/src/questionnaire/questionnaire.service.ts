@@ -290,6 +290,7 @@ export class QuestionnaireService {
         key: domainKey,
         title: domain.title,
         cutoff_score: domain.cutoffScore,
+        monitor_max: domain.monitorMax || 0,
         questions: domain.questions.map((q, qIdx) => ({
           id: `${domainKey}_q${qIdx + 1}`,
           text: q.text,

@@ -182,7 +182,7 @@ model OcrResult {
   id                     Int      @id @default(autoincrement())
   fileId                 Int
   questionnaireVersionId Int?
-  rawText                String?
+  rawText                String?  @db.Text
   parsedAnswersJson      Json?
   confidence             Float?
   bboxJson               Json?

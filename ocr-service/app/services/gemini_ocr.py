@@ -42,13 +42,17 @@ Your task:
 2. Find all checkboxes (□) that are marked (with X, checkmark, or filled)
 3. Map each marked checkbox to its corresponding question ID
 4. Determine the answer based on the label:
-   - C (Có) → Y
-   - D (Đôi khi) → S  
-   - K (Không/Chưa) → N
+   - For domain questions (communication_q*, gross_motor_q*, fine_motor_q*, problem_solving_q*, personal_social_q*):
+     - C (Có) → Y
+     - D (Đôi khi) → S  
+     - K (Không/Chưa) → N
+   - For overall questions (overall_q1 to overall_q8 - TỔNG QUAN section):
+     - C (Có) → Y
+     - K (Không) → N
 
 Rules:
 - Only return marked checkboxes (ignore empty checkboxes)
-- Each question should have exactly ONE answer (Y, S, or N)
+- Each question should have exactly ONE answer
 - If a question has no marked checkbox, omit it from the response
 - Return ONLY valid JSON, no explanations
 
@@ -60,6 +64,8 @@ Response format (JSON only):
   "communication_q1": "Y",
   "communication_q2": "S",
   "gross_motor_q1": "N",
+  "overall_q1": "Y",
+  "overall_q2": "N",
   ...
 }}
 

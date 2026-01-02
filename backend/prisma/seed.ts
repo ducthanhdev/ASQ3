@@ -35,6 +35,8 @@ async function main() {
       {
         key: 'communication',
         title: 'Giao tiếp',
+        cutoff_score: 20,
+        monitor_max: 30,
         questions: [
           {
             id: 'q1',
@@ -71,6 +73,8 @@ async function main() {
       {
         key: 'gross_motor',
         title: 'Vận động thô',
+        cutoff_score: 20,
+        monitor_max: 30,
         questions: [
           {
             id: 'q7',
@@ -107,6 +111,8 @@ async function main() {
       {
         key: 'fine_motor',
         title: 'Vận động tinh',
+        cutoff_score: 20,
+        monitor_max: 30,
         questions: [
           {
             id: 'q13',
@@ -143,6 +149,8 @@ async function main() {
       {
         key: 'problem_solving',
         title: 'Giải quyết vấn đề',
+        cutoff_score: 20,
+        monitor_max: 30,
         questions: [
           {
             id: 'q19',
@@ -179,6 +187,8 @@ async function main() {
       {
         key: 'social_personal',
         title: 'Cá nhân/Xã hội',
+        cutoff_score: 20,
+        monitor_max: 30,
         questions: [
           {
             id: 'q25',
@@ -216,7 +226,6 @@ async function main() {
     overall_section: [],
     rules: {
       score_values: { Y: 10, S: 5, N: 0 },
-      monitor_margin: 2,
     },
   };
 

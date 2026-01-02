@@ -30,6 +30,11 @@ class DomainDto {
   @Min(0)
   cutoffScore: number;
 
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  monitorMax?: number;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => QuestionDto)
